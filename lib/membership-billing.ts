@@ -136,7 +136,9 @@ export async function createMemberSetupIntent(userId: string) {
   return { clientSecret: setupIntent.client_secret };
 }
 
-export async function createMemberSubscriptionIntent(_userId: string) {
+export async function createMemberSubscriptionIntent(
+  _userId: string,
+): Promise<{ clientSecret: string; subscriptionId: string }> {
   throw new Error("Monthly membership is no longer offered.");
 }
 
