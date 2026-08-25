@@ -6,17 +6,12 @@ import {
   ProseBlock,
 } from "@/app/components/content-section";
 import { BundlePurchaseGrid } from "@/app/components/bundle-purchase-grid";
-import { ComingSoonOverlay } from "@/app/components/coming-soon-overlay";
-import { MembershipSubscribeButton } from "@/app/components/membership-subscribe-button";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { BOOKING_URL } from "@/lib/constants";
 import { getCurrentMember } from "@/lib/member-auth";
 import { buildMembershipPlans, MEMBERSHIP_PLAN } from "@/lib/membership-config";
-import {
-  getStudioPricingSettings,
-  listActiveClassPacks,
-} from "@/lib/studio-pricing-service";
+import { listActiveClassPacks } from "@/lib/studio-pricing-service";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -68,9 +63,8 @@ function classPackSubtitle(packCount: number) {
 export default async function MembershipPage() {
   await connection();
 
-  const [classPacks, pricingSettings, member] = await Promise.all([
+  const [classPacks, member] = await Promise.all([
     listActiveClassPacks(),
-    getStudioPricingSettings(),
     getCurrentMember(),
   ]);
 
@@ -84,8 +78,7 @@ export default async function MembershipPage() {
     validDays: pack.validDays,
   }));
 
-  const monthlyMembershipActive = pricingSettings.monthlyMembershipActive;
-  const membershipPlans = buildMembershipPlans(pricingSettings.membershipPriceLabel);
+  const membershipPlans = buildMembershipPlans();
   const isSignedIn = Boolean(member);
   const steps = isSignedIn ? memberSteps : guestSteps;
 
@@ -123,43 +116,20 @@ export default async function MembershipPage() {
 
       <ContentSection className="bg-pink-soft">
         {packs.length > 0 && (
-          <div className={monthlyMembershipActive ? "" : "pb-4"}>
+          <div className="pb-4">
             <SectionHeading
               title="Class passes"
               subtitle={classPackSubtitle(packs.length)}
             />
-            <div
-              className={`mx-auto mt-12 ${
-                monthlyMembershipActive ? "max-w-4xl" : "max-w-5xl"
-              }`}
-            >
-              <BundlePurchaseGrid packs={packs} featured emphasize={!monthlyMembershipActive} />
+            <div className="mx-auto mt-12 max-w-5xl">
+              <BundlePurchaseGrid packs={packs} featured emphasize />
             </div>
           </div>
         )}
 
-        <div
-          className={
-            packs.length > 0
-              ? monthlyMembershipActive
-                ? "mt-20"
-                : "mt-16 border-t border-plum/10 pt-16"
-              : ""
-          }
-        >
-          <SectionHeading
-            title="Membership options"
-            subtitle={
-              monthlyMembershipActive
-                ? undefined
-                : "Monthly membership is on the way — class packs are available now."
-            }
-          />
-          <div
-            className={`mt-12 grid gap-8 ${
-              membershipPlans.length > 1 ? "lg:grid-cols-2" : "max-w-xl"
-            } ${monthlyMembershipActive ? "" : "opacity-95"}`}
-          >
+        <div className={packs.length > 0 ? "mt-16 border-t border-plum/10 pt-16" : ""}>
+          <SectionHeading title="Membership" centered />
+          <div className="mx-auto mt-12 max-w-xl">
             {membershipPlans.map((plan) => {
               const isAccountPlan = plan.id === MEMBERSHIP_PLAN.account;
               const planHref =
@@ -171,13 +141,11 @@ export default async function MembershipPage() {
                   ? "You\u2019re already a member"
                   : plan.priceNote;
 
-              const card = (
-                <>
-                  {plan.highlighted && (
-                    <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-brand">
-                      Most popular
-                    </p>
-                  )}
+              return (
+                <article
+                  key={plan.id}
+                  className="flex flex-col rounded-sm border border-plum/10 bg-surface p-8"
+                >
                   <h3 className="font-display text-3xl text-plum">{plan.name}</h3>
                   <p className="mt-2">
                     <span className="font-display text-4xl text-brand">{plan.price}</span>
@@ -197,39 +165,13 @@ export default async function MembershipPage() {
                     ))}
                   </ul>
                   <div className="mt-8">
-                    {plan.id === MEMBERSHIP_PLAN.monthly ? (
-                      <MembershipSubscribeButton />
-                    ) : (
-                      <Link
-                        href={planHref}
-                        className="block w-full rounded-sm bg-sage py-3 text-center text-sm font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
-                      >
-                        {planCta}
-                      </Link>
-                    )}
+                    <Link
+                      href={planHref}
+                      className="block w-full rounded-sm bg-sage py-3 text-center text-sm font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
+                    >
+                      {planCta}
+                    </Link>
                   </div>
-                </>
-              );
-
-              const showComingSoon =
-                plan.id === MEMBERSHIP_PLAN.monthly && !monthlyMembershipActive;
-
-              return (
-                <article
-                  key={plan.id}
-                  className={`flex flex-col rounded-sm border bg-surface p-8 ${
-                    plan.highlighted
-                      ? "border-pink/40 shadow-sm ring-1 ring-pink/15"
-                      : "border-plum/10"
-                  }`}
-                >
-                  {showComingSoon ? (
-                    <ComingSoonOverlay eyebrow="Monthly Subscription">
-                      {card}
-                    </ComingSoonOverlay>
-                  ) : (
-                    card
-                  )}
                 </article>
               );
             })}

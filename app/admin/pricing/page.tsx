@@ -61,7 +61,7 @@ export default async function AdminPricingPage() {
             Passes &amp; pricing
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-            Update drop-in and membership prices, plus class pass prices, credit volume,
+            Update drop-in and course prices, plus class pass prices, credit volume,
             and validity. Schedule sessions separately under Schedule.
           </p>
           <AdminNav active="pricing" permissions={session.permissions} />

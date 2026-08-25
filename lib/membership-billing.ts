@@ -1,15 +1,9 @@
-import type Stripe from "stripe";
 import { formatMoneyFromPence, isStripeConfigured } from "@/lib/booking-config";
 import { MEMBERSHIP_PLAN, MEMBERSHIP_STATUS } from "@/lib/membership-config";
-import {
-  getOrCreateStripeCustomer,
-  getSubscriptionPeriodEnd,
-  syncMembershipFromStripeSubscription,
-} from "@/lib/membership-stripe";
+import { getSubscriptionPeriodEnd, syncMembershipFromStripeSubscription } from "@/lib/membership-stripe";
 import { db } from "@/lib/db";
 import { getStripeClient } from "@/lib/stripe";
 import { getStripePublishableKey } from "@/lib/stripe-env";
-import { resolveMonthlyMembershipPricePence } from "@/lib/studio-pricing-service";
 
 export type BillingPaymentMethod = {
   id: string;
@@ -43,69 +37,14 @@ function getPublishableKey() {
   return getStripePublishableKey();
 }
 
-function getInvoiceClientSecret(invoice: Stripe.Invoice) {
-  const confirmationSecret = invoice.confirmation_secret;
-  if (
-    confirmationSecret &&
-    typeof confirmationSecret === "object" &&
-    "client_secret" in confirmationSecret &&
-    confirmationSecret.client_secret
-  ) {
-    return confirmationSecret.client_secret;
-  }
-
-  const paymentIntent = (invoice as Stripe.Invoice & {
-    payment_intent?: Stripe.PaymentIntent | string | null;
-  }).payment_intent;
-
-  if (paymentIntent && typeof paymentIntent === "object" && paymentIntent.client_secret) {
-    return paymentIntent.client_secret;
-  }
-
-  return null;
-}
-
-export async function getOrCreateMembershipPriceId() {
-  const stripe = getStripeClient();
-  const amount = await resolveMonthlyMembershipPricePence();
-
-  const products = await stripe.products.list({ limit: 100, active: true });
-  let product = products.data.find((item) => item.metadata.whc_plan === MEMBERSHIP_PLAN.monthly);
-
-  if (!product) {
-    product = await stripe.products.create({
-      name: "Wild Hearts Collective — Monthly Membership",
-      description: "Unlimited selected drop-in classes and member perks.",
-      metadata: { whc_plan: MEMBERSHIP_PLAN.monthly },
-    });
-  }
-
-  const prices = await stripe.prices.list({ product: product.id, active: true, limit: 100 });
-  const existingPrice = prices.data.find(
-    (price) =>
-      price.unit_amount === amount &&
-      price.currency === "gbp" &&
-      price.recurring?.interval === "month",
-  );
-
-  if (existingPrice) return existingPrice.id;
-
-  const price = await stripe.prices.create({
-    product: product.id,
-    unit_amount: amount,
-    currency: "gbp",
-    recurring: { interval: "month" },
-  });
-
-  return price.id;
+export async function getOrCreateMembershipPriceId(): Promise<string> {
+  throw new Error("Monthly membership is no longer offered.");
 }
 
 export async function getMemberBillingSummary(userId: string): Promise<MemberBillingSummary> {
   const publishableKey = getPublishableKey();
   const configured = isStripeConfigured() && Boolean(publishableKey);
-  const membershipPriceLabel = formatMoneyFromPence(
-    await resolveMonthlyMembershipPricePence(),
-  );
+  const membershipPriceLabel = "";
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -125,13 +64,7 @@ export async function getMemberBillingSummary(userId: string): Promise<MemberBil
       publishableKey,
       paymentMethods: [],
       invoices: [],
-      canSubscribe:
-        Boolean(user) &&
-        configured &&
-        !(
-          user?.membershipPlan === MEMBERSHIP_PLAN.monthly &&
-          user?.membershipStatus === MEMBERSHIP_STATUS.active
-        ),
+      canSubscribe: false,
       hasActiveMembership:
         user?.membershipPlan === MEMBERSHIP_PLAN.monthly &&
         user?.membershipStatus === MEMBERSHIP_STATUS.active,
@@ -171,10 +104,7 @@ export async function getMemberBillingSummary(userId: string): Promise<MemberBil
       created: new Date(invoice.created * 1000).toISOString(),
       pdfUrl: invoice.invoice_pdf ?? null,
     })),
-    canSubscribe: !(
-      user.membershipPlan === MEMBERSHIP_PLAN.monthly &&
-      user.membershipStatus === MEMBERSHIP_STATUS.active
-    ),
+    canSubscribe: false,
     hasActiveMembership:
       user.membershipPlan === MEMBERSHIP_PLAN.monthly &&
       user.membershipStatus === MEMBERSHIP_STATUS.active,
@@ -206,74 +136,8 @@ export async function createMemberSetupIntent(userId: string) {
   return { clientSecret: setupIntent.client_secret };
 }
 
-export async function createMemberSubscriptionIntent(userId: string) {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      stripeCustomerId: true,
-      stripeSubscriptionId: true,
-      membershipPlan: true,
-      membershipStatus: true,
-    },
-  });
-
-  if (!user) throw new Error("Account not found.");
-
-  if (
-    user.membershipPlan === MEMBERSHIP_PLAN.monthly &&
-    user.membershipStatus === MEMBERSHIP_STATUS.active
-  ) {
-    throw new Error("You already have an active monthly membership.");
-  }
-
-  const customerId = await getOrCreateStripeCustomer(user);
-  const stripe = getStripeClient();
-  const priceId = await getOrCreateMembershipPriceId();
-
-  if (user.stripeSubscriptionId) {
-    const existing = await stripe.subscriptions.retrieve(user.stripeSubscriptionId, {
-      expand: ["latest_invoice.payment_intent", "latest_invoice.confirmation_secret"],
-    });
-
-    if (
-      existing.status === "incomplete" ||
-      existing.status === "past_due" ||
-      existing.status === "unpaid"
-    ) {
-      const clientSecret = getInvoiceClientSecret(existing.latest_invoice as Stripe.Invoice);
-      if (clientSecret) {
-        return { clientSecret, subscriptionId: existing.id };
-      }
-    }
-  }
-
-  const subscription = await stripe.subscriptions.create({
-    customer: customerId,
-    items: [{ price: priceId }],
-    payment_behavior: "default_incomplete",
-    payment_settings: { save_default_payment_method: "on_subscription" },
-    expand: ["latest_invoice.payment_intent", "latest_invoice.confirmation_secret"],
-    metadata: {
-      userId: user.id,
-      plan: MEMBERSHIP_PLAN.monthly,
-      type: "membership",
-    },
-  });
-
-  await db.user.update({
-    where: { id: user.id },
-    data: { stripeSubscriptionId: subscription.id },
-  });
-
-  const clientSecret = getInvoiceClientSecret(subscription.latest_invoice as Stripe.Invoice);
-  if (!clientSecret) {
-    throw new Error("Unable to start membership payment.");
-  }
-
-  return { clientSecret, subscriptionId: subscription.id };
+export async function createMemberSubscriptionIntent(_userId: string) {
+  throw new Error("Monthly membership is no longer offered.");
 }
 
 export async function syncMemberSubscription(userId: string, subscriptionId: string) {

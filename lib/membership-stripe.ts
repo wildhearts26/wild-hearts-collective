@@ -1,7 +1,4 @@
 import type Stripe from "stripe";
-import {
-  getAppBaseUrl,
-} from "@/lib/booking-config";
 import { db } from "@/lib/db";
 import { sendMembershipWelcomeEmails } from "@/lib/email";
 import {
@@ -9,7 +6,6 @@ import {
   MEMBERSHIP_STATUS,
 } from "@/lib/membership-config";
 import { getStripeClient } from "@/lib/stripe";
-import { resolveMonthlyMembershipPricePence } from "@/lib/studio-pricing-service";
 
 export function getSubscriptionPeriodEnd(subscription: Stripe.Subscription) {
   const item = subscription.items?.data?.[0];
@@ -41,49 +37,13 @@ export async function getOrCreateStripeCustomer(user: {
   return customer.id;
 }
 
-export async function createMembershipCheckoutSession(user: {
+export async function createMembershipCheckoutSession(_user: {
   id: string;
   email: string;
   name: string;
   stripeCustomerId: string | null;
 }) {
-  const stripe = getStripeClient();
-  const customerId = await getOrCreateStripeCustomer(user);
-  const baseUrl = getAppBaseUrl();
-  const amount = await resolveMonthlyMembershipPricePence();
-
-  return stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    client_reference_id: user.id,
-    metadata: {
-      type: "membership",
-      userId: user.id,
-      plan: MEMBERSHIP_PLAN.monthly,
-    },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "gbp",
-          unit_amount: amount,
-          recurring: { interval: "month" },
-          product_data: {
-            name: "Wild Hearts Collective — Monthly Membership",
-            description: "Unlimited selected drop-in classes and member perks.",
-          },
-        },
-      },
-    ],
-    success_url: `${baseUrl}/account?membership=success`,
-    cancel_url: `${baseUrl}/membership?cancelled=1`,
-    subscription_data: {
-      metadata: {
-        userId: user.id,
-        plan: MEMBERSHIP_PLAN.monthly,
-      },
-    },
-  });
+  throw new Error("Monthly membership is no longer offered.");
 }
 
 export async function activateMembershipFromSubscription(

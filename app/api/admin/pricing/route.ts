@@ -36,52 +36,35 @@ export async function PATCH(request: Request) {
     const body = await request.json();
     const hasPrices =
       body.dropInPricePounds != null &&
-      body.membershipPricePounds != null &&
       body.fourWeekCoursePricePounds != null;
-    const hasVisibility = typeof body.monthlyMembershipActive === "boolean";
 
-    if (!hasPrices && !hasVisibility) {
+    if (!hasPrices) {
       return NextResponse.json(
-        { error: "Provide pricing values or a monthly membership visibility toggle." },
+        { error: "Provide drop-in and course prices." },
         { status: 400 },
       );
     }
 
     const update: Parameters<typeof updateStudioPricingSettings>[0] = {};
 
-    if (hasPrices) {
-      const dropInPounds =
-        typeof body.dropInPricePounds === "number"
-          ? body.dropInPricePounds
-          : Number.parseFloat(String(body.dropInPricePounds));
-      const coursePounds =
-        typeof body.fourWeekCoursePricePounds === "number"
-          ? body.fourWeekCoursePricePounds
-          : Number.parseFloat(String(body.fourWeekCoursePricePounds));
-      const membershipPounds =
-        typeof body.membershipPricePounds === "number"
-          ? body.membershipPricePounds
-          : Number.parseFloat(String(body.membershipPricePounds));
+    const dropInPounds =
+      typeof body.dropInPricePounds === "number"
+        ? body.dropInPricePounds
+        : Number.parseFloat(String(body.dropInPricePounds));
+    const coursePounds =
+      typeof body.fourWeekCoursePricePounds === "number"
+        ? body.fourWeekCoursePricePounds
+        : Number.parseFloat(String(body.fourWeekCoursePricePounds));
 
-      if (
-        !Number.isFinite(dropInPounds) ||
-        !Number.isFinite(coursePounds) ||
-        !Number.isFinite(membershipPounds)
-      ) {
-        return NextResponse.json(
-          { error: "Enter valid drop-in, course, and membership prices." },
-          { status: 400 },
-        );
-      }
-
-      update.dropInPricePence = Math.round(dropInPounds * 100);
-      update.fourWeekCoursePricePence = Math.round(coursePounds * 100);
-      update.membershipPricePence = Math.round(membershipPounds * 100);
+    if (!Number.isFinite(dropInPounds) || !Number.isFinite(coursePounds)) {
+      return NextResponse.json(
+        { error: "Enter valid drop-in and course prices." },
+        { status: 400 },
+      );
     }
 
-    if (hasVisibility) {
-      update.monthlyMembershipActive = body.monthlyMembershipActive;
-    }
+    update.dropInPricePence = Math.round(dropInPounds * 100);
+    update.fourWeekCoursePricePence = Math.round(coursePounds * 100);
 
     const settings = await updateStudioPricingSettings(update);
 

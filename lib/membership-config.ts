@@ -28,7 +28,7 @@ export function monthlyMembershipLabel(pricePence = getEnvMonthlyMembershipPrice
   return formatMoneyFromPence(pricePence);
 }
 
-export function buildMembershipPlans(monthlyPriceLabel: string) {
+export function buildMembershipPlans() {
   return [
     {
       id: MEMBERSHIP_PLAN.account,
@@ -47,28 +47,10 @@ export function buildMembershipPlans(monthlyPriceLabel: string) {
       href: "/register",
       highlighted: false,
     },
-    {
-      id: MEMBERSHIP_PLAN.monthly,
-      name: "Monthly Membership",
-      price: monthlyPriceLabel,
-      priceNote: "per month",
-      description:
-        "For regular flyers — unlimited access to selected drop-in classes and member-only perks.",
-      features: [
-        "Everything in Studio Member",
-        "Unlimited drop-in classes (selected timetable)",
-        "Priority waitlist notifications",
-        "Member events and early booking windows",
-      ],
-      cta: "Subscribe monthly",
-      href: "/register?plan=monthly",
-      highlighted: true,
-    },
   ] as const;
 }
 
-/** @deprecated Prefer buildMembershipPlans with a resolved price label. */
-export const membershipPlans = buildMembershipPlans(monthlyMembershipLabel());
+export const membershipPlans = buildMembershipPlans();
 
 export function membershipPlanLabel(plan: string) {
   if (plan === MEMBERSHIP_PLAN.monthly) return "Monthly Membership";

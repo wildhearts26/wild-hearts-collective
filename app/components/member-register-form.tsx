@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthDivider, GoogleSignInButton } from "./social-auth-buttons";
 
 export function MemberRegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const plan = searchParams.get("plan");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -41,12 +39,6 @@ export function MemberRegisterForm() {
         return;
       }
 
-      if (plan === "monthly") {
-        router.push("/account/profile#billing");
-        router.refresh();
-        return;
-      }
-
       router.push("/account");
       router.refresh();
     } catch {
@@ -58,14 +50,7 @@ export function MemberRegisterForm() {
 
   return (
     <div className="space-y-4">
-      {plan === "monthly" && (
-        <p className="rounded-sm border border-pink/40 bg-pink-soft px-4 py-3 text-sm text-plum">
-          You&apos;re signing up for a <strong>Monthly Membership</strong>. After verifying
-          your account, you&apos;ll complete payment securely on your profile page.
-        </p>
-      )}
-
-      <GoogleSignInButton nextPath={plan === "monthly" ? "/account/profile#billing" : "/account"} />
+      <GoogleSignInButton nextPath="/account" />
       <AuthDivider />
 
       <form onSubmit={handleSubmit} className="space-y-4">
