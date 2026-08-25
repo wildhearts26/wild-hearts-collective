@@ -1,6 +1,6 @@
 import { formatMoneyFromPence, isStripeConfigured } from "@/lib/booking-config";
 import { MEMBERSHIP_PLAN, MEMBERSHIP_STATUS } from "@/lib/membership-config";
-import { getSubscriptionPeriodEnd, syncMembershipFromStripeSubscription } from "@/lib/membership-stripe";
+import { getOrCreateStripeCustomer, getSubscriptionPeriodEnd, syncMembershipFromStripeSubscription } from "@/lib/membership-stripe";
 import { db } from "@/lib/db";
 import { getStripeClient } from "@/lib/stripe";
 import { getStripePublishableKey } from "@/lib/stripe-env";
