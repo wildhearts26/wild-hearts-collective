@@ -10,12 +10,15 @@ import { QualificationBadges } from "@/app/components/qualification-badges";
 import { SectionHeading } from "@/app/components/section-heading";
 import { values } from "@/lib/site-data";
 import { heroImages } from "@/lib/hero-images";
+import { pageSeo } from "@/lib/page-seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "About Us",
   description:
     "Learn about Wild Hearts Collective — our mission, values, and qualified and experienced teaching team in Mansfield.",
-};
+  path: "/about",
+  image: heroImages.about,
+});
 
 const qualifications = [
   {
@@ -73,9 +76,9 @@ export default function AboutPage() {
           <div>
             <SectionHeading title="About Us" />
             <ProseBlock>
-              <p>
-                Founded by Rosie, Jacqui, and Sarah, Wild Hearts Collective began
-                with a vision: an inclusive, community-focused space offering
+              <p className="geo-citation">
+                Wild Hearts Collective is an inclusive aerial and pole studio in
+                Mansfield, founded by Rosie, Jacqui, and Sarah to offer
                 accessible pole and aerial arts alongside creative workshops for
                 people of all ages, abilities, and backgrounds.
               </p>

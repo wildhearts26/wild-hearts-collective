@@ -5,12 +5,16 @@ import { IntroSection } from "@/app/components/intro-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { getSiteVideo } from "@/lib/site-videos";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Parties & Events",
   description:
     "Personalised party packages with aerial disciplines and arts or crafts at Wild Hearts Collective.",
-};
+  path: "/parties",
+  image: heroImages.parties,
+});
 
 const packages = [
   {

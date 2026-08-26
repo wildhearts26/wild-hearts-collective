@@ -13,6 +13,10 @@ import {
   resolveSessionCreditCost,
 } from "@/lib/studio-pricing-service";
 
+/** Always read live Schedule rows — never serve a stale bookable list. */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const classSlug = searchParams.get("class");
@@ -20,12 +24,21 @@ export async function GET(request: Request) {
   try {
     await ensureSeededDatabase();
     await expireStalePendingBookings();
-    return NextResponse.json(await loadSessions(classSlug));
+    return NextResponse.json(await loadSessions(classSlug), {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("Failed to load sessions:", error);
     return NextResponse.json(
       { error: "Unable to load sessions. Check the database connection." },
-      { status: 503 },
+      {
+        status: 503,
+        headers: {
+          "Cache-Control": "no-store, max-age=0",
+        },
+      },
     );
   }
 }

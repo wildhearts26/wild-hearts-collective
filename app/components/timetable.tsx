@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SectionHeading } from "@/app/components/section-heading";
 import { BOOKING_URL } from "@/lib/constants";
 import {
   timetable as defaultTimetable,
@@ -73,7 +74,11 @@ function DayOverlay({
     >
       <div
         className={`flex h-full min-h-0 items-stretch gap-[2cqw] px-[2.4cqw] ${
-          region.height <= 5.5 ? "py-[0.45cqw]" : region.height <= 10.5 ? "py-[0.9cqw]" : "py-[1.6cqw]"
+          region.height <= 5.5
+            ? "py-[0.45cqw]"
+            : region.height <= 10.5
+              ? "py-[0.9cqw]"
+              : "py-[1.6cqw]"
         }`}
       >
         <p
@@ -128,7 +133,9 @@ function DayOverlay({
                       style={{
                         color: INK,
                         fontFamily: "Georgia, 'Times New Roman', serif",
-                        paddingLeft: hasTime ? "calc(22cqw + 1.4cqw + 0.4cqw)" : undefined,
+                        paddingLeft: hasTime
+                          ? "calc(22cqw + 1.4cqw + 0.4cqw)"
+                          : undefined,
                       }}
                     >
                       ({item.note.replace(/^\(|\)$/g, "")})
@@ -145,8 +152,8 @@ function DayOverlay({
 }
 
 /**
- * Marketing timetable: full uncropped Timetable.png poster (exact header +
- * botanical frame) with editable day/class overlays from Admin → Timetable.
+ * Marketing timetable: full-width Timetable.png poster (exact header +
+ * botanical frame) with editable overlays — same content width as Our Classes.
  */
 export function Timetable({
   days = defaultTimetable,
@@ -157,11 +164,18 @@ export function Timetable({
   const promotionalRows = days.slice(DAY_REGIONS.length);
 
   return (
-    <div className="mx-auto w-full max-w-xl">
-      <h2 className="sr-only">Timetable</h2>
+    <div className="w-full">
+      <SectionHeading
+        title="Timetable"
+        subtitle="Our weekly studio pattern. Tap a class to open booking — live dates and availability are confirmed there."
+      />
 
+      {/*
+        Full content width (matches the two-column class grid below).
+        Botanical poster stays uncropped — only day/class text is overlaid.
+      */}
       <div
-        className="relative w-full overflow-hidden rounded-sm shadow-[0_12px_40px_-24px_rgba(74,67,60,0.45)]"
+        className="relative mt-12 w-full overflow-hidden rounded-sm bg-surface shadow-sm ring-1 ring-plum/5"
         style={{
           aspectRatio: `${POSTER_W} / ${POSTER_H}`,
           containerType: "inline-size",
@@ -173,12 +187,10 @@ export function Timetable({
           alt="Wild Hearts Collective weekly class timetable"
           fill
           priority
-          sizes="(max-width: 640px) 100vw, 36rem"
+          sizes="(max-width: 1024px) 100vw, 72rem"
           className="pointer-events-none object-contain object-top"
-          // Full poster — never crop title, logo, or botanical frame.
         />
 
-        {/* Editable schedule only — PNG header / leaves / dividers stay visible */}
         {overlayDays.map((day, index) => (
           <DayOverlay
             key={`${day.day}-${index}`}
@@ -188,12 +200,18 @@ export function Timetable({
         ))}
       </div>
 
-      {promotionalRows.length > 0 && (
-        <section className="mt-5 space-y-3" aria-label="Upcoming courses and special events">
+      {promotionalRows.length > 0 ? (
+        <section
+          className="mt-8 space-y-3"
+          aria-label="Upcoming courses and special events"
+        >
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand">
+            Courses &amp; special events
+          </p>
           {promotionalRows.map((row, index) => (
             <div
               key={`${row.day}-${index}`}
-              className="rounded-sm border border-plum/10 bg-white/70 px-5 py-4 text-left shadow-sm"
+              className="rounded-sm border border-plum/10 bg-surface px-5 py-4 shadow-sm ring-1 ring-plum/5"
             >
               <p className="text-xs font-semibold uppercase tracking-wider text-brand">
                 {row.day}
@@ -201,26 +219,32 @@ export function Timetable({
               <ul className="mt-2 space-y-1.5">
                 {row.classes.map((item, classIndex) => (
                   <li key={`${item.title}-${classIndex}`} className="text-sm text-plum">
-                    <Link href={bookHref(item)} className="font-semibold hover:underline">
-                      {item.time ? `${item.time} · ` : ""}{item.title}
+                    <Link
+                      href={bookHref(item)}
+                      className="font-semibold hover:underline"
+                    >
+                      {item.time ? `${item.time} · ` : ""}
+                      {item.title}
                     </Link>
-                    {item.note ? <span className="text-muted"> — {item.note}</span> : null}
+                    {item.note ? (
+                      <span className="text-muted"> — {item.note}</span>
+                    ) : null}
                   </li>
                 ))}
               </ul>
             </div>
           ))}
         </section>
-      )}
+      ) : null}
 
-      <div className="mt-6 flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
-        <p className="max-w-md text-sm leading-relaxed text-muted">
-          Weekly studio pattern above. Tap a class for live bookable sessions — tutors,
-          one-offs, and availability are in the booking schedule.
+      <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-xl text-sm leading-relaxed text-muted">
+          One-offs, tutors, and open sessions are listed in the live booking
+          schedule when they are available to book.
         </p>
         <Link
           href={BOOKING_URL}
-          className="inline-flex shrink-0 rounded-sm bg-sage px-5 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
+          className="inline-flex shrink-0 rounded-sm bg-sage px-6 py-3 text-xs font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
         >
           Book a class
         </Link>

@@ -7,12 +7,16 @@ import {
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { companyDisclaimer, contact } from "@/lib/site-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Disclaimer",
   description:
     "Important disclaimers regarding classes, health and safety, and website content at Wild Hearts Collective.",
-};
+  path: "/disclaimer",
+  image: heroImages.terms,
+});
 
 export default function DisclaimerPage() {
   return (

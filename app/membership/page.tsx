@@ -12,15 +12,19 @@ import { BOOKING_URL } from "@/lib/constants";
 import { getCurrentMember } from "@/lib/member-auth";
 import { buildMembershipPlans, MEMBERSHIP_PLAN } from "@/lib/membership-config";
 import { listActiveClassPacks } from "@/lib/studio-pricing-service";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Membership",
   description:
     "Join Wild Hearts Collective — create your member account, book classes online, and manage your bookings in one place.",
-};
+  path: "/membership",
+  image: heroImages.community,
+});
 
 const guestSteps = [
   {

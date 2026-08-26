@@ -4,12 +4,16 @@ import { ContentSection } from "@/app/components/content-section";
 import { PageHero } from "@/app/components/page-hero";
 import { TeamCard } from "@/app/components/team-card";
 import { teamMembers } from "@/lib/team-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Our Team",
   description:
     "Meet the qualified and experienced instructors at Wild Hearts Collective — Rosie, Jacqui, Sarah, Jane, and Zane.",
-};
+  path: "/about/team",
+  image: heroImages.team,
+});
 
 export default function AboutTeamPage() {
   return (

@@ -7,12 +7,16 @@ import {
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { contact } from "@/lib/site-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Cookie Policy",
   description:
     "How Wild Hearts Collective uses cookies and similar technologies on this website.",
-};
+  path: "/cookie-policy",
+  image: heroImages.terms,
+});
 
 export default function CookiePolicyPage() {
   return (

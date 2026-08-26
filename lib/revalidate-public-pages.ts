@@ -17,3 +17,9 @@ export function revalidateMarketingTimetablePages() {
 export function revalidateShopCatalogPages() {
   revalidatePath("/shop");
 }
+
+/** Bust bookable schedule surfaces after Admin → Schedule create/edit/cancel. */
+export function revalidateBookableScheduleSurfaces() {
+  revalidatePath("/book");
+  revalidatePath("/api/sessions");
+}

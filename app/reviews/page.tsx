@@ -12,12 +12,16 @@ import {
   type PublicSiteReview,
 } from "@/lib/reviews-data";
 import { googleReviewLink, socialLinks } from "@/lib/site-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Reviews",
   description:
     "Read what our community says about Wild Hearts Collective — then leave a Google review or find us on Facebook and Instagram.",
-};
+  path: "/reviews",
+  image: heroImages.reviews,
+});
 
 function StarRating({ rating }: { rating: number }) {
   const clamped = Math.min(5, Math.max(1, Math.round(rating)));

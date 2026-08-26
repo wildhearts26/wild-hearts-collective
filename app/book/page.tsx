@@ -4,12 +4,16 @@ import { ContentSection } from "@/app/components/content-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { siteConfig } from "@/lib/site-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Book a Class",
   description:
     "Book pole, hoop, silks, juniors, workshops, creative arts, and beginner courses at Wild Hearts Collective.",
-};
+  path: "/book",
+  image: heroImages.classes,
+});
 
 export default function BookPage() {
   return (

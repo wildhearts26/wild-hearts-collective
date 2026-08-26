@@ -1,20 +1,19 @@
-import { LIVE_SITE_URL } from "@/lib/booking-config";
+import { BUSINESS_ID, ORG_ID, PREFERRED_CITATION, SITE_ORIGIN } from "@/lib/geo";
 import { contact, socialLinks } from "@/lib/site-data";
-
-const SITE_URL = LIVE_SITE_URL.replace(/\/$/, "");
 
 export function getLocalBusinessJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
-    "@id": `${SITE_URL}/#business`,
+    "@id": BUSINESS_ID,
     name: contact.name,
-    url: SITE_URL,
+    url: SITE_ORIGIN,
     telephone: "+441158718090",
     email: contact.email,
-    image: `${SITE_URL}/logo/logo-email-green.png`,
-    description:
-      "Inclusive aerial and pole studio in Mansfield offering pole, hoop, silks, and creative arts for all ages, abilities, and backgrounds.",
+    image: `${SITE_ORIGIN}/og-default.jpg`,
+    logo: `${SITE_ORIGIN}/logo/logo-email-green.png`,
+    description: PREFERRED_CITATION,
+    parentOrganization: { "@id": ORG_ID },
     address: {
       "@type": "PostalAddress",
       streetAddress: "Unit 25, Block 7 Hallam Way, Old Mill Lane Industrial Estate",

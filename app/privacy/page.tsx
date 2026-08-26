@@ -7,12 +7,16 @@ import {
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { contact, siteConfig } from "@/lib/site-data";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Data Privacy",
   description:
     "How Wild Hearts Collective collects, uses, and protects your personal data.",
-};
+  path: "/privacy",
+  image: heroImages.terms,
+});
 
 export default function PrivacyPage() {
   return (

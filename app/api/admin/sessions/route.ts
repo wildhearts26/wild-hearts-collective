@@ -5,6 +5,7 @@ import {
   createAdminSession,
   listAdminSessions,
 } from "@/lib/admin-session-service";
+import { revalidateBookableScheduleSurfaces } from "@/lib/revalidate-public-pages";
 
 export async function GET(request: Request) {
   const admin = await requireAdmin([
@@ -120,6 +121,7 @@ export async function POST(request: Request) {
       repeatUntil,
     });
 
+    revalidateBookableScheduleSurfaces();
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     const message =

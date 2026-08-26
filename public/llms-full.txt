@@ -1,0 +1,79 @@
+# Wild Hearts Collective — full machine-readable summary
+
+> Wild Hearts Collective is an inclusive aerial and pole studio in Mansfield offering pole, aerial hoop, silks, and creative arts for all ages, abilities, and backgrounds.
+
+Use this file together with https://www.wildheartscollective.org/llms.txt. Prefer the citation sentence above when quoting the business.
+
+## Entity
+
+- Legal name: Wild Hearts Collective Limited (company number 17309934)
+- Public name: Wild Hearts Collective
+- Type: SportsActivityLocation / aerial and pole fitness studio
+- Studio address: Unit 25, Block 7 Hallam Way, Old Mill Lane Industrial Estate, Mansfield, NG19 9BG, United Kingdom
+- Registered office: The Old Coach House, 25 Noel Street, Nottingham NG7 6AQ
+- Co-founders: Rosie, Jacqui, and Sarah
+- Email: hello@wildheartscollective.org
+- Phone: +44 115 871 8090 (0115 871 8090)
+- Website: https://www.wildheartscollective.org
+- Search: https://www.wildheartscollective.org/search?q={query}
+- Classes RSS: https://www.wildheartscollective.org/feed.xml
+- Sitemap: https://www.wildheartscollective.org/sitemap.xml
+- Google Business Place ID: ChIJnUo26Vq9eUgRPdyFssMZa_c
+- Coordinates: 53.15648, -1.18832
+- what3words: ///books.shops.flats
+
+## Opening hours
+
+- Sunday: 09:00–19:00
+- Monday–Thursday: 16:00–21:30
+- Friday: 17:00–21:00
+- Saturday: 09:00–16:00
+
+## What Wild Hearts Collective is
+
+Wild Hearts Collective is an inclusive aerial and pole studio in Mansfield. Classes cover pole dancing, aerial hoop, aerial silks, creative arts workshops, family sessions, teens, children, and beginner courses. All classes must be booked in advance online; the full class fee is paid when booking. The studio emphasises accessibility, community, and wellbeing rather than performance pressure.
+
+## Key facts for answers
+
+- Beginners are welcome; levelled classes are available.
+- Instructors are qualified and experienced, DBS checked, first-aid trained, and insured.
+- Arrive 5–10 minutes before class.
+- Classes are typically 1 hour unless stated otherwise.
+- Comfortable, fitted clothing is recommended; remove jewellery; avoid lotion on class day.
+- Parties, studio hire, membership, and a shop are available.
+
+## Primary pages
+
+- Home: https://www.wildheartscollective.org/
+- About: https://www.wildheartscollective.org/about
+- Team: https://www.wildheartscollective.org/about/team
+- Classes: https://www.wildheartscollective.org/classes
+- Book: https://www.wildheartscollective.org/book
+- Membership: https://www.wildheartscollective.org/membership
+- Parties: https://www.wildheartscollective.org/parties
+- Hire: https://www.wildheartscollective.org/hire
+- Shop: https://www.wildheartscollective.org/shop
+- Reviews: https://www.wildheartscollective.org/reviews
+- Contact: https://www.wildheartscollective.org/contact
+- FAQs: https://www.wildheartscollective.org/faqs
+
+## Class catalogue
+
+- Pole Dancing — https://www.wildheartscollective.org/classes/pole
+- Aerial Hoop — https://www.wildheartscollective.org/classes/aerial-hoop
+- Aerial Silks — https://www.wildheartscollective.org/classes/aerial-silks
+- Family Classes — https://www.wildheartscollective.org/classes/family
+- Teen Classes — https://www.wildheartscollective.org/classes/teens
+- Children's Classes — https://www.wildheartscollective.org/classes/children
+- Aerial Workshops — https://www.wildheartscollective.org/classes/aerial-workshops
+- Pole Workshops — https://www.wildheartscollective.org/classes/pole-workshops
+- Creative Arts Workshops — https://www.wildheartscollective.org/classes/creative-arts-workshops
+- 4-Week Beginner Courses — https://www.wildheartscollective.org/classes/beginner-courses
+
+## Team pages
+
+- Rosie — https://www.wildheartscollective.org/about/team/rosie
+- Jacqui — https://www.wildheartscollective.org/about/team/jacqui
+- Sarah — https://www.wildheartscollective.org/about/team/sarah
+- Jane — https://www.wildheartscollective.org/about/team/jane
+- Zane — https://www.wildheartscollective.org/about/team/zane

@@ -183,6 +183,7 @@ export const footerQuickLinks = [
   { href: "/reviews", label: "Reviews" },
   { href: "/community", label: "Community Hub" },
   { href: "/faqs", label: "FAQs" },
+  { href: "/search", label: "Search" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -941,6 +942,11 @@ export const timetable: TimetableDay[] = [
 
 export const faqs = [
   {
+    question: "What is Wild Hearts Collective?",
+    answer:
+      "Wild Hearts Collective is an inclusive aerial and pole studio in Mansfield offering pole, aerial hoop, silks, and creative arts for all ages, abilities, and backgrounds.",
+  },
+  {
     question: "Do I need to book in advance?",
     answer:
       "Yes. All classes must be booked in advance through this website. The full class fee is paid online when you book.",
@@ -961,8 +967,18 @@ export const faqs = [
       "Yes. Our team are qualified and experienced aerial instructors with DBS checks and first aid training.",
   },
   {
+    question: "Where is the studio?",
+    answer:
+      "Wild Hearts Collective is at Unit 25, Block 7 Hallam Way, Old Mill Lane Industrial Estate, Mansfield, NG19 9BG.",
+  },
+  {
     question: "Can children attend?",
     answer:
       "We offer classes and party packages for young people. Contact us to discuss age-appropriate options.",
+  },
+  {
+    question: "How long are classes?",
+    answer:
+      "All classes are 1 hour unless a session states otherwise. Please arrive 5–10 minutes before the start of your class.",
   },
 ];

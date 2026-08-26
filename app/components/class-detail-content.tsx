@@ -44,6 +44,9 @@ export function ClassDetailContent({ classItem }: { classItem: ClassDetailData }
         <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <SectionHeading title="Overview" subtitle={classItem.levels} />
+            <p className="geo-citation mt-4 text-sm leading-relaxed text-muted sm:text-base">
+              {classItem.title} at Wild Hearts Collective is {classItem.shortDescription}
+            </p>
             <ProseBlock>
               {overviewParagraphs(classItem).map((paragraph) => (
                 <p key={paragraph.slice(0, 48)}>{paragraph}</p>

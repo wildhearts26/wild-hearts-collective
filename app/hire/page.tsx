@@ -4,12 +4,16 @@ import { ContentSection } from "@/app/components/content-section";
 import { IntroSection } from "@/app/components/intro-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Hire the Space",
   description:
     "Studio and room hire for private events, workshops, and community use at Wild Hearts Collective.",
-};
+  path: "/hire",
+  image: heroImages.hire,
+});
 
 const options = [
   {

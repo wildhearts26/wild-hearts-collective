@@ -5,12 +5,16 @@ import { SectionHeading } from "@/app/components/section-heading";
 import { ShopStorefront } from "@/app/components/shop-storefront";
 import { listStorefrontShopProducts } from "@/lib/shop-catalog-service";
 import { getShopCategories } from "@/lib/shop-categories-service";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Shop",
   description:
     "Gift vouchers, aerial equipment, apparel, and studio essentials from Wild Hearts Collective. Digital e-vouchers available now.",
-};
+  path: "/shop",
+  image: heroImages.shop,
+});
 
 type ShopPageProps = {
   searchParams: Promise<{ cancelled?: string }>;

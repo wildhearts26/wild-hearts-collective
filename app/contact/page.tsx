@@ -7,13 +7,17 @@ import {
 } from "@/app/components/content-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 import { contact, socialLinks } from "@/lib/site-data";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Contact Us",
   description:
     "Get in touch with Wild Hearts Collective about classes, parties, studio hire, and more.",
-};
+  path: "/contact",
+  image: heroImages.contact,
+});
 
 const phoneHref = `tel:${contact.phone.replace(/\s/g, "")}`;
 

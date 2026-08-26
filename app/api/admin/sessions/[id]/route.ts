@@ -6,6 +6,7 @@ import {
   getAdminSessionRoster,
   updateAdminSession,
 } from "@/lib/admin-session-service";
+import { revalidateBookableScheduleSurfaces } from "@/lib/revalidate-public-pages";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -94,6 +95,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Session not found." }, { status: 404 });
     }
 
+    revalidateBookableScheduleSurfaces();
     return NextResponse.json({ session });
   } catch (error) {
     const message =
@@ -121,6 +123,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     if (!result) {
       return NextResponse.json({ error: "Session not found." }, { status: 404 });
     }
+    revalidateBookableScheduleSurfaces();
     return NextResponse.json(result);
   } catch (error) {
     const message =

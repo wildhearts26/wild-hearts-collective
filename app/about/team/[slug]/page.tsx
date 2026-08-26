@@ -9,7 +9,13 @@ import {
 } from "@/app/components/content-section";
 import { PageHero } from "@/app/components/page-hero";
 import { TeamSocialLinks } from "@/app/components/team-social-links";
+import {
+  breadcrumbJsonLd,
+  jsonLdScript,
+  personJsonLd,
+} from "@/lib/geo";
 import { getTeamMember, teamMembers } from "@/lib/team-data";
+import { pageSeo } from "@/lib/page-seo";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -27,10 +33,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "Instructor Not Found" };
   }
 
-  return {
+  return pageSeo({
     title: `${member.name} — Instructor`,
     description: member.shortBio,
-  };
+    path: `/about/team/${member.slug}`,
+    image: member.imageSrc,
+  });
 }
 
 export default async function InstructorBioPage({ params }: PageProps) {
@@ -43,6 +51,23 @@ export default async function InstructorBioPage({ params }: PageProps) {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(personJsonLd(member)) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(
+            breadcrumbJsonLd([
+              { name: "Home", path: "/" },
+              { name: "About", path: "/about" },
+              { name: "Our Team", path: "/about/team" },
+              { name: member.name, path: `/about/team/${member.slug}` },
+            ]),
+          ),
+        }}
+      />
       <PageHero
         title={member.name}
         subtitle={`${member.role} · ${member.pronouns}`}
@@ -80,6 +105,10 @@ export default async function InstructorBioPage({ params }: PageProps) {
             <h2 className="mt-3 font-display text-4xl text-plum sm:text-5xl">
               {member.name}
             </h2>
+            <p className="geo-citation mt-4 text-sm leading-relaxed text-muted">
+              {member.name} is a {member.role.toLowerCase()} at Wild Hearts
+              Collective. {member.shortBio}
+            </p>
             <p className="mt-2 text-sm text-muted">{member.pronouns}</p>
 
             <ProseBlock>

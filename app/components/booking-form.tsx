@@ -177,22 +177,26 @@ export function BookingForm() {
   const selectedSession =
     sessions.find((session) => session.id === selectedSessionId) ?? null;
   const isCourseBooking = isCourseClassSlug(selectedSession?.classSlug);
-  const sessionCreditCost = selectedSession?.creditCost ?? 1;
+  const sessionCreditCost = selectedSession?.creditCost ?? 0;
   const sessionCreditLabel =
     selectedSession?.creditCostLabel ?? formatCreditLabel(sessionCreditCost);
   const memberCredits = member?.creditsRemaining ?? 0;
   const canPayWithCredit =
     Boolean(member) &&
+    Boolean(selectedSession) &&
+    sessionCreditCost > 0 &&
     hasEnoughCredits(memberCredits, sessionCreditCost) &&
     !selectedSession?.isFull &&
     !joinWaitlist &&
     !isCourseBooking;
-  const priceNote =
-    selectedSession?.priceLabel ??
-    (isCourseBooking
-      ? config?.coursePriceLabel
-      : config?.classPriceLabel ?? config?.depositLabel) ??
-    "£10.00";
+  // Show £0.00 until a session is chosen — prices vary by class/session.
+  const priceNote = selectedSession
+    ? selectedSession.priceLabel ??
+      (isCourseBooking
+        ? config?.coursePriceLabel
+        : config?.classPriceLabel ?? config?.depositLabel) ??
+      "£0.00"
+    : "£0.00";
   const hasSelectableSession = sessions.some(
     (session) =>
       !session.alreadyBooked && !session.bookingDisabledReason && (!session.isFull || joinWaitlist),
@@ -265,7 +269,9 @@ export function BookingForm() {
       setError("");
       try {
         const query = classFilter === "all" ? "" : `?class=${classFilter}`;
-        const response = await fetch(`/api/sessions${query}`);
+        const response = await fetch(`/api/sessions${query}`, {
+          cache: "no-store",
+        });
         if (!response.ok) {
           const data = (await response.json().catch(() => ({}))) as { error?: string };
           throw new Error(data.error ?? "Could not load sessions.");
@@ -287,15 +293,17 @@ export function BookingForm() {
           }
           if (
             current &&
-            data.some((session) => session.id === current && !session.alreadyBooked && !session.bookingDisabledReason)
+            data.some(
+              (session) =>
+                session.id === current &&
+                !session.alreadyBooked &&
+                !session.bookingDisabledReason,
+            )
           ) {
             return current;
           }
-          const firstAvailable =
-            data.find((session) => !session.alreadyBooked && !session.bookingDisabledReason && !session.isFull)?.id ??
-            data.find((session) => !session.alreadyBooked && !session.bookingDisabledReason)?.id ??
-            "";
-          return firstAvailable;
+          // Keep amount due at £0.00 until the guest explicitly selects a session.
+          return "";
         });
       } catch {
         setError("Unable to load available sessions. Please try again.");
@@ -661,10 +669,12 @@ export function BookingForm() {
             Reserve your class
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-            {siteConfig.bookingNote} {siteConfig.durationNote} Weekly drop-ins are{" "}
-            {config?.classPriceLabel ?? config?.depositLabel ?? "£10.00"}; 4-week
-            courses are {config?.coursePriceLabel ?? "£80.00"} for the full block.
-            Pay online to secure your place — quick, secure, and confirmed by email.
+            {siteConfig.bookingNote} {siteConfig.durationNote} Typical weekly
+            drop-ins start from{" "}
+            {config?.classPriceLabel ?? config?.depositLabel ?? "£12.50"}; 4-week
+            courses from {config?.coursePriceLabel ?? "£30.00"} — the exact amount
+            due updates when you select a session. Pay online to secure your place
+            — quick, secure, and confirmed by email.
           </p>
         </div>
 
@@ -718,7 +728,13 @@ export function BookingForm() {
               )}
               {!loading && sessions.length === 0 && (
                 <p className="rounded-lg border border-dashed border-plum/15 px-4 py-8 text-center text-sm text-muted">
-                  No upcoming sessions for this class. Try another filter or contact us.
+                  No bookable sessions are scheduled right now. The homepage
+                  timetable is a weekly guide — live dates for online booking are
+                  set under Admin → Schedule. Please check back soon or{" "}
+                  <Link href="/contact" className="font-medium text-plum underline-offset-2 hover:underline">
+                    contact us
+                  </Link>
+                  .
                 </p>
               )}
               {!loading &&
@@ -1244,7 +1260,9 @@ export function BookingForm() {
                   : voucherCode.trim()
                     ? "Apply code & confirm"
                     : config?.stripeEnabled
-                      ? `Continue to pay ${priceNote}`
+                      ? selectedSession
+                        ? `Continue to pay ${priceNote}`
+                        : "Select a class to continue"
                       : "Confirm booking"}
           </button>
           <p className="text-center text-xs leading-relaxed text-muted">
@@ -1336,23 +1354,25 @@ export function BookingForm() {
                 : "Amount due"}
           </p>
           <p className="mt-2 text-3xl font-semibold">
-            {isSignedIn && useCredit
+            {isSignedIn && useCredit && selectedSession
               ? formatCredits(sessionCreditCost)
-              : voucherCode.trim()
+              : voucherCode.trim() && selectedSession
                 ? "Code entered"
                 : priceNote}
-            {isSignedIn && useCredit ? (
+            {isSignedIn && useCredit && selectedSession ? (
               <span className="ml-2 text-base font-medium text-white/85">
                 {sessionCreditCost === 1 ? "credit" : "credits"}
               </span>
             ) : null}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-white/85">
-            {isSignedIn && useCredit
+            {isSignedIn && useCredit && selectedSession
               ? `Your booking confirms instantly when you use ${sessionCreditLabel} — no card payment needed.`
-              : voucherCode.trim()
+              : voucherCode.trim() && selectedSession
                 ? "If your gift card or voucher covers the class fee, your booking confirms immediately. Any leftover gift balance stays on the code."
-                : "Pay online when you book, or enter a gift card / reward code. You will receive a confirmation email once payment is complete."}
+                : selectedSession
+                  ? "Pay online when you book, or enter a gift card / reward code. You will receive a confirmation email once payment is complete."
+                  : "Select a class above to see the amount due. Prices can vary by session."}
           </p>
         </div>
 

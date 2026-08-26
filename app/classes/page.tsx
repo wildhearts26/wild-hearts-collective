@@ -7,18 +7,21 @@ import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
 import { BookButton } from "@/app/components/book-button";
 import { classes, siteConfig } from "@/lib/site-data";
-import { classSlugToHero, type HeroImageKey } from "@/lib/hero-images";
+import { classSlugToHero, heroImages, type HeroImageKey } from "@/lib/hero-images";
+import { pageSeo } from "@/lib/page-seo";
 import { getSiteVideo } from "@/lib/site-videos";
 
 function getClassHeroKey(slug: string): HeroImageKey {
   return classSlugToHero[slug] ?? "community";
 }
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Our Classes",
   description:
     "Pole, aerial hoop, silks, juniors, workshops, and creative arts at Wild Hearts Collective — for all levels.",
-};
+  path: "/classes",
+  image: heroImages.classes,
+});
 
 export default function ClassesPage() {
   const overviewVideo = getSiteVideo("services");

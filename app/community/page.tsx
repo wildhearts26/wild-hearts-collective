@@ -7,12 +7,16 @@ import {
 import { IntroSection } from "@/app/components/intro-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Community & Space",
   description:
     "Wild Hearts Collective is a community hub for arts, crafts, wellbeing, and local collaboration.",
-};
+  path: "/community",
+  image: heroImages.community,
+});
 
 const highlights = [
   {

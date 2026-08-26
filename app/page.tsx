@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { pageSeo } from "@/lib/page-seo";
 import { ClassCard } from "./components/class-card";
 import {
   ContentSection,
@@ -17,6 +19,13 @@ import {
 } from "@/lib/marketing-timetable-service";
 import { classes, siteConfig } from "@/lib/site-data";
 import { classSlugToHero, type HeroImageKey } from "@/lib/hero-images";
+
+export const metadata: Metadata = pageSeo({
+  title: "Wild Hearts Collective | Pole & Aerial Classes in Mansfield",
+  description:
+    "Inclusive aerial and pole studio in Mansfield offering pole, hoop, silks, and creative arts for all ages, abilities, and backgrounds.",
+  path: "/",
+});
 
 /** Always read the latest admin-saved timetable from the database. */
 export const dynamic = "force-dynamic";
@@ -48,7 +57,7 @@ export default async function Home() {
         </p>
         <SectionHeading title="About us" />
         <ProseBlock>
-          <p>
+          <p className="geo-citation">
             Wild Hearts Collective is an inclusive aerial and pole studio in
             Mansfield, founded by qualified and experienced instructors Rosie,
             Jacqui, and Sarah. We offer accessible pole, aerial hoop, silks, and
@@ -69,6 +78,12 @@ export default async function Home() {
 
       <WhyChooseUs />
 
+      {timetableVisible ? (
+        <ContentSection id="timetable" className="bg-pink-soft scroll-mt-24">
+          <Timetable days={timetableDays} />
+        </ContentSection>
+      ) : null}
+
       <ContentSection className="bg-white">
         <SectionHeading
           title="Our Classes"
@@ -88,12 +103,6 @@ export default async function Home() {
           ))}
         </ul>
       </ContentSection>
-
-      {timetableVisible ? (
-        <ContentSection id="timetable" className="bg-pink-soft scroll-mt-24">
-          <Timetable days={timetableDays} />
-        </ContentSection>
-      ) : null}
 
       <FaqPreview />
     </>

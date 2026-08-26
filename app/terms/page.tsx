@@ -5,11 +5,15 @@ import {
 } from "@/app/components/content-section";
 import { PageHero } from "@/app/components/page-hero";
 import { SectionHeading } from "@/app/components/section-heading";
+import { pageSeo } from "@/lib/page-seo";
+import { heroImages } from "@/lib/hero-images";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageSeo({
   title: "Terms & Conditions",
   description: "Terms and conditions for Wild Hearts Collective classes and bookings.",
-};
+  path: "/terms",
+  image: heroImages.terms,
+});
 
 export default function TermsPage() {
   return (
