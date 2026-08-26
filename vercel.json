@@ -15,6 +15,17 @@
   ],
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "wild-hearts-collective.vercel.app"
+        }
+      ],
+      "destination": "https://www.wildheartscollective.org/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {
