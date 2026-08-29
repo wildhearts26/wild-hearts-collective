@@ -431,9 +431,10 @@ export function AdminTimetablePanel({
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-plum/10 pt-6">
         <p className="max-w-xl text-sm text-muted">
-          The first seven rows are the weekly homepage timetable. Additional promotions
-          appear below it on the homepage — use a date or label such as “1 September”.
-          Each weekday needs at least one class or the homepage cards look blank. Class
+          The first seven rows are the weekly homepage timetable. Each day’s card grows
+          and shrinks automatically with the classes you add, including Saturday and
+          Sunday. Additional promotions appear below it on the homepage — use a date or
+          label such as “1 September”. Each weekday needs at least one class. Class
           rows with a book link open{" "}
           <code className="text-xs">/book?class=…</code>; blank uses{" "}
           <code className="text-xs">/book</code>.

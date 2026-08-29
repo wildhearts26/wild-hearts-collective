@@ -8,27 +8,17 @@ import {
   type TimetableDay,
 } from "@/lib/site-data";
 
-/** Poster pixel size of public/Timetable.png — keep overlays in sync with this. */
+/** Poster pixel size of public/Timetable.png — used to crop the header/footer artwork. */
 const POSTER_W = 941;
 const POSTER_H = 1672;
+/** Top of the first day card on the original poster (~25.7%). */
+const HEADER_H = Math.round(POSTER_H * 0.25);
+/** Bottom heart motif below Sunday (~5.5%). */
+const FOOTER_H = Math.round(POSTER_H * 0.055);
 
-/**
- * Overlay boxes as % of the full uncropped poster.
- * Calibrated so HTML covers baked-in day/class text only —
- * header (script “Timetable” + aerial logo), leaves, and heart dividers stay pure PNG.
- */
-const DAY_REGIONS = [
-  { top: 25.7, height: 14.4 }, // Monday
-  { top: 40.0, height: 12.7 }, // Tuesday
-  { top: 52.6, height: 12.6 }, // Wednesday
-  { top: 65.1, height: 10.0 }, // Thursday
-  { top: 75.0, height: 10.0 }, // Friday — room for two classes + note
-  { top: 85.0, height: 5.5 }, // Saturday
-  { top: 90.5, height: 4.0 }, // Sunday — leave space above the bottom heart motif
-] as const;
-
-const CARD_LEFT = 10.1;
-const CARD_WIDTH = 82.4;
+const WEEKLY_DAY_COUNT = 7;
+const CARD_LEFT = "10.1%";
+const CARD_RIGHT = "7.5%";
 /** Matches the cream fill inside the PNG day cards. */
 const CARD_CREAM = "#fbf8f2";
 const INK = "#4a5d4e";
@@ -54,33 +44,13 @@ function bookHref(item: TimetableClass) {
   return BOOKING_URL;
 }
 
-function DayOverlay({
-  day,
-  region,
-}: {
-  day: TimetableDay;
-  region: (typeof DAY_REGIONS)[number];
-}) {
+function DayCard({ day }: { day: TimetableDay }) {
   return (
-    <div
-      className="absolute overflow-hidden rounded-[2.2cqw] border border-[#d7d0c4]/90"
-      style={{
-        top: `${region.top}%`,
-        left: `${CARD_LEFT}%`,
-        width: `${CARD_WIDTH}%`,
-        height: `${region.height}%`,
-        backgroundColor: CARD_CREAM,
-      }}
+    <article
+      className="rounded-[2.2cqw] border border-[#d7d0c4]/90"
+      style={{ backgroundColor: CARD_CREAM }}
     >
-      <div
-        className={`flex h-full min-h-0 items-stretch gap-[2cqw] px-[2.4cqw] ${
-          region.height <= 5.5
-            ? "py-[0.45cqw]"
-            : region.height <= 10.5
-              ? "py-[0.9cqw]"
-              : "py-[1.6cqw]"
-        }`}
-      >
+      <div className="flex items-stretch gap-[2cqw] px-[2.4cqw] py-[1.5cqw]">
         <p
           className="flex w-[14cqw] shrink-0 items-center text-[2.85cqw] font-semibold uppercase leading-tight tracking-[0.08em]"
           style={{ color: INK, fontFamily: "Georgia, 'Times New Roman', serif" }}
@@ -92,7 +62,7 @@ function DayOverlay({
           style={{ backgroundColor: INK }}
           aria-hidden
         />
-        <ul className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-[0.25cqw] overflow-visible">
+        <ul className="flex min-w-0 flex-1 flex-col justify-center gap-[0.35cqw] py-[0.2cqw]">
           {day.classes.map((item, index) => {
             const href = bookHref(item);
             const hasTime = Boolean(item.time?.trim());
@@ -104,7 +74,7 @@ function DayOverlay({
                   className="group block rounded-[0.6cqw] outline-none transition hover:bg-[#efe8dc]/80 focus-visible:ring-2 focus-visible:ring-sage/35"
                 >
                   <div
-                    className="flex min-w-0 items-baseline gap-[1.4cqw] px-[0.4cqw] py-[0.15cqw]"
+                    className="flex min-w-0 items-baseline gap-[1.4cqw] px-[0.4cqw] py-[0.2cqw]"
                     style={{
                       color: INK,
                       fontFamily: "Georgia, 'Times New Roman', serif",
@@ -129,7 +99,7 @@ function DayOverlay({
                   </div>
                   {item.note ? (
                     <p
-                      className="px-[0.4cqw] pb-[0.2cqw] text-[1.65cqw] italic leading-tight opacity-80"
+                      className="px-[0.4cqw] pb-[0.25cqw] text-[1.65cqw] italic leading-snug opacity-80"
                       style={{
                         color: INK,
                         fontFamily: "Georgia, 'Times New Roman', serif",
@@ -147,21 +117,21 @@ function DayOverlay({
           })}
         </ul>
       </div>
-    </div>
+    </article>
   );
 }
 
 /**
- * Marketing timetable: full-width Timetable.png poster (exact header +
- * botanical frame) with editable overlays — same content width as Our Classes.
+ * Marketing timetable: botanical poster header/footer from Timetable.png,
+ * with HTML day cards that grow and shrink with the number of classes.
  */
 export function Timetable({
   days = defaultTimetable,
 }: {
   days?: TimetableDay[];
 }) {
-  const overlayDays = days.slice(0, DAY_REGIONS.length);
-  const promotionalRows = days.slice(DAY_REGIONS.length);
+  const weeklyDays = days.slice(0, WEEKLY_DAY_COUNT);
+  const promotionalRows = days.slice(WEEKLY_DAY_COUNT);
 
   return (
     <div className="w-full">
@@ -170,34 +140,67 @@ export function Timetable({
         subtitle="Our weekly studio pattern. Tap a class to open booking — live dates and availability are confirmed there."
       />
 
-      {/*
-        Full content width (matches the two-column class grid below).
-        Botanical poster stays uncropped — only day/class text is overlaid.
-      */}
       <div
         className="relative mt-12 w-full overflow-hidden rounded-sm bg-surface shadow-sm ring-1 ring-plum/5"
         style={{
-          aspectRatio: `${POSTER_W} / ${POSTER_H}`,
           containerType: "inline-size",
           backgroundColor: CARD_CREAM,
         }}
       >
-        <Image
-          src="/Timetable.png"
-          alt="Wild Hearts Collective weekly class timetable"
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 72rem"
-          className="pointer-events-none object-contain object-top"
-        />
-
-        {overlayDays.map((day, index) => (
-          <DayOverlay
-            key={`${day.day}-${index}`}
-            day={day}
-            region={DAY_REGIONS[index]!}
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[14%]">
+          <Image
+            src="/timetable/leaves-left.png"
+            alt=""
+            fill
+            sizes="14vw"
+            className="object-cover object-top"
           />
-        ))}
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[14%]">
+          <Image
+            src="/timetable/leaves-right.png"
+            alt=""
+            fill
+            sizes="14vw"
+            className="object-cover object-top"
+          />
+        </div>
+
+        <div
+          className="relative z-10 w-full overflow-hidden"
+          style={{ aspectRatio: `${POSTER_W} / ${HEADER_H}` }}
+        >
+          <Image
+            src="/Timetable.png"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 72rem"
+            className="pointer-events-none object-cover object-top"
+          />
+        </div>
+
+        <div
+          className="relative z-10 flex flex-col gap-[1.15cqw] py-[0.8cqw]"
+          style={{ paddingLeft: CARD_LEFT, paddingRight: CARD_RIGHT }}
+        >
+          {weeklyDays.map((day, index) => (
+            <DayCard key={`${day.day}-${index}`} day={day} />
+          ))}
+        </div>
+
+        <div
+          className="relative z-10 w-full overflow-hidden"
+          style={{ aspectRatio: `${POSTER_W} / ${FOOTER_H}` }}
+        >
+          <Image
+            src="/Timetable.png"
+            alt=""
+            fill
+            sizes="(max-width: 1024px) 100vw, 72rem"
+            className="pointer-events-none object-cover object-bottom"
+          />
+        </div>
       </div>
 
       {promotionalRows.length > 0 ? (
