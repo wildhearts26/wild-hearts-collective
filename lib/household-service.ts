@@ -1,12 +1,12 @@
 import { db } from "@/lib/db";
 import {
   ALLOWED_ID_MIME_TYPES,
-  ID_DOCUMENT_STATUS,
   MEMBER_TYPE,
   MAX_ID_DOCUMENT_BYTES,
   PARENTAL_CONSENT_VERSION,
   isChildAge,
 } from "@/lib/household-config";
+import { insertGuardianIdDocument } from "@/lib/id-document-storage";
 import { MEMBERSHIP_PLAN, MEMBERSHIP_STATUS } from "@/lib/membership-config";
 
 const householdMemberSelect = {
@@ -204,8 +204,6 @@ export async function createChildMember(input: CreateChildMemberInput) {
     throw new Error("Identification document must be 4 MB or smaller.");
   }
 
-  const documentBytes = toPrismaBytes(input.idDocument.bytes);
-
   const child = await db.user.create({
     data: {
       name: input.name,
@@ -228,14 +226,6 @@ export async function createChildMember(input: CreateChildMemberInput) {
       parentalConsentName: input.parentalConsentName,
       parentalConsentRelationship: input.parentalConsentRelationship,
       parentalConsentVersion: PARENTAL_CONSENT_VERSION,
-      idDocuments: {
-        create: {
-          fileName: input.idDocument.fileName,
-          mimeType: input.idDocument.mimeType,
-          data: documentBytes,
-          status: ID_DOCUMENT_STATUS.pending,
-        },
-      },
     },
     select: {
       id: true,
@@ -246,11 +236,17 @@ export async function createChildMember(input: CreateChildMemberInput) {
     },
   });
 
-  return child;
-}
+  try {
+    await insertGuardianIdDocument({
+      childUserId: child.id,
+      fileName: input.idDocument.fileName,
+      mimeType: input.idDocument.mimeType,
+      bytes: input.idDocument.bytes,
+    });
+  } catch (error) {
+    await db.user.delete({ where: { id: child.id } }).catch(() => undefined);
+    throw error;
+  }
 
-function toPrismaBytes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
-  const copy = new Uint8Array(new ArrayBuffer(bytes.byteLength));
-  copy.set(bytes);
-  return copy;
+  return child;
 }

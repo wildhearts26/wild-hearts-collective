@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import { db } from "@/lib/db";
 import { ID_DOCUMENT_STATUS, type IdDocumentStatus } from "@/lib/household-config";
+import { getLatestGuardianIdDocumentBinary } from "@/lib/id-document-storage";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -12,22 +13,32 @@ export async function GET(_request: Request, context: RouteContext) {
   if (!admin.authed) return admin.response;
 
   const { id } = await context.params;
-  const document = await db.guardianIdDocument.findFirst({
-    where: { childUserId: id },
-    orderBy: { uploadedAt: "desc" },
-  });
 
-  if (!document) {
-    return NextResponse.json({ error: "No identification document on file." }, { status: 404 });
+  try {
+    const document = await getLatestGuardianIdDocumentBinary(id);
+
+    if (!document) {
+      return NextResponse.json({ error: "No identification document on file." }, { status: 404 });
+    }
+
+    const safeName = document.fileName.replace(/[^\w.\- ()[\]]+/g, "_");
+
+    return new NextResponse(new Uint8Array(document.data), {
+      headers: {
+        "Content-Type": document.mimeType || "application/octet-stream",
+        "Content-Length": String(document.data.byteLength),
+        "Content-Disposition": `inline; filename="${safeName}"`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    console.error("[admin:id-document:get]", id, error);
+    return NextResponse.json(
+      { error: "Unable to load the identification document right now." },
+      { status: 500 },
+    );
   }
-
-  return new NextResponse(new Uint8Array(document.data), {
-    headers: {
-      "Content-Type": document.mimeType,
-      "Content-Disposition": `inline; filename="${document.fileName.replaceAll('"', "")}"`,
-      "Cache-Control": "private, no-store",
-    },
-  });
 }
 
 type ReviewBody = {
