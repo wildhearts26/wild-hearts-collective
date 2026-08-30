@@ -69,6 +69,17 @@ export const ACCOUNT_STATUS = {
   banned: "banned",
 } as const;
 
+export function accountStatusLabel(status: string) {
+  switch (status) {
+    case ACCOUNT_STATUS.suspended:
+      return "Suspended";
+    case ACCOUNT_STATUS.banned:
+      return "Banned";
+    default:
+      return "Active";
+  }
+}
+
 export const MEMBERSHIP_EVENT_TYPE = {
   started: "started",
   paused: "paused",

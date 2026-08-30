@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import {
   ALLOWED_ID_MIME_TYPES,
+  ID_DOCUMENT_STATUS,
   MEMBER_TYPE,
   MAX_ID_DOCUMENT_BYTES,
   PARENTAL_CONSENT_VERSION,
@@ -139,12 +140,19 @@ export async function assertChildCanBook(userId: string) {
 
   const document = await db.guardianIdDocument.findFirst({
     where: { childUserId: userId },
-    select: { id: true },
+    orderBy: { uploadedAt: "desc" },
+    select: { id: true, status: true },
   });
 
   if (!document) {
     throw new ChildConsentRequiredError(
       "A parent or guardian must upload proof of identification before this child can book classes.",
+    );
+  }
+
+  if (document.status === ID_DOCUMENT_STATUS.rejected) {
+    throw new ChildConsentRequiredError(
+      "The parent or guardian identification for this child was not accepted. Please upload a new ID document from Family members before booking.",
     );
   }
 }

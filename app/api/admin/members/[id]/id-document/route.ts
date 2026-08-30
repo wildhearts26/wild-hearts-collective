@@ -5,6 +5,7 @@ import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import { db } from "@/lib/db";
 import { ID_DOCUMENT_STATUS, type IdDocumentStatus } from "@/lib/household-config";
 import { getLatestGuardianIdDocumentBinary } from "@/lib/id-document-storage";
+import { notifyParentOfIdDocumentReview } from "@/lib/member-notifications";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -63,6 +64,21 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Please approve or reject the document." }, { status: 400 });
   }
 
+  const child = await db.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      guardianUserId: true,
+      guardian: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  if (!child) {
+    return NextResponse.json({ error: "Member not found." }, { status: 404 });
+  }
+
   const document = await db.guardianIdDocument.findFirst({
     where: { childUserId: id },
     orderBy: { uploadedAt: "desc" },
@@ -73,12 +89,14 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "No identification document on file." }, { status: 404 });
   }
 
+  const reviewNote = body.reviewNote?.trim() || null;
+
   const updated = await db.guardianIdDocument.update({
     where: { id: document.id },
     data: {
       status,
       reviewedAt: new Date(),
-      reviewNote: body.reviewNote?.trim() || null,
+      reviewNote,
     },
     select: {
       id: true,
@@ -92,6 +110,17 @@ export async function PATCH(request: Request, context: RouteContext) {
     action: status === ID_DOCUMENT_STATUS.approved ? "member.id_approved" : "member.id_rejected",
     targetUserId: id,
     details: { documentId: updated.id, status },
+  });
+
+  const parentName = child.guardian?.name ?? "Parent/guardian";
+  const toEmail = child.guardian?.email ?? child.email;
+
+  await notifyParentOfIdDocumentReview({
+    toEmail,
+    parentName,
+    childName: child.name,
+    status,
+    reviewNote,
   });
 
   return NextResponse.json({ document: updated });

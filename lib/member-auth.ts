@@ -106,6 +106,7 @@ export type PublicMember = {
   household: HouseholdMemberOption[];
   parentalConsentComplete: boolean;
   idDocumentUploaded: boolean;
+  idDocumentStatus: string | null;
 };
 
 export function toPublicMember(
@@ -131,6 +132,7 @@ export function toPublicMember(
     guardianId?: string;
     household?: HouseholdMemberOption[];
     idDocumentUploaded?: boolean;
+    idDocumentStatus?: string | null;
   },
 ): PublicMember {
   const memberType = user.memberType === "child" || user.guardianUserId ? "child" : "adult";
@@ -158,6 +160,7 @@ export function toPublicMember(
     household: extras?.household ?? [],
     parentalConsentComplete: !isChild || Boolean(user.parentalConsentAt),
     idDocumentUploaded: extras?.idDocumentUploaded ?? !isChild,
+    idDocumentStatus: extras?.idDocumentStatus ?? null,
   };
 }
 
@@ -215,6 +218,7 @@ export async function getCurrentMember() {
       image: member.image,
     })),
     idDocumentUploaded: Boolean(idDocument),
+    idDocumentStatus: idDocument?.status ?? null,
   });
 }
 

@@ -7,6 +7,7 @@ import { AdminMemberAvatar } from "@/app/components/admin-member-avatar";
 import { AdminParQPanel } from "@/app/components/admin-parq-panel";
 import {
   ACCOUNT_STATUS,
+  accountStatusLabel,
   DISCIPLINE_INTERESTS,
   EXPERIENCE_LEVELS,
 } from "@/lib/profile-config";
@@ -116,6 +117,38 @@ export function AdminMemberDetail({
   const [pauseStart, setPauseStart] = useState("");
   const [resumeAt, setResumeAt] = useState("");
   const [actionReason, setActionReason] = useState("");
+  const [idReviewNote, setIdReviewNote] = useState(idDocument?.reviewNote ?? "");
+
+  async function reviewIdDocument(status: "approved" | "rejected") {
+    setLoading(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}/id-document`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status,
+          reviewNote: idReviewNote.trim() || undefined,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Unable to update identification status.");
+      }
+      setMessage(
+        status === "approved"
+          ? "Identification approved. Parent notified by email."
+          : "Identification rejected. Parent notified by email — they must re-upload before this child can book.",
+      );
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update identification status.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function saveMember(payload: Record<string, unknown>) {
     setLoading(true);
@@ -232,7 +265,7 @@ export function AdminMemberDetail({
             )}
             {member.membership.accountStatus !== ACCOUNT_STATUS.active && (
               <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-800">
-                {member.membership.accountStatus}
+                {accountStatusLabel(member.membership.accountStatus)}
               </span>
             )}
           </div>
@@ -298,19 +331,29 @@ export function AdminMemberDetail({
                       >
                         View identification document
                       </a>
+                      <p className="text-xs text-muted">
+                        Approving or rejecting emails the parent/guardian. A rejected ID blocks
+                        bookings for this child until a new document is uploaded.
+                      </p>
+                      <div>
+                        <label className="block text-sm font-semibold text-plum">
+                          Review note (optional)
+                        </label>
+                        <p className="mt-1 text-xs text-muted">
+                          Included in the email if you reject. Keep it brief and practical.
+                        </p>
+                        <textarea
+                          className={`${inputClass} mt-2 min-h-20`}
+                          value={idReviewNote}
+                          onChange={(e) => setIdReviewNote(e.target.value)}
+                          placeholder="e.g. Photo too blurry — please upload a clearer scan of your passport or driving licence."
+                        />
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           disabled={loading}
-                          onClick={() =>
-                            fetch(`/api/admin/members/${memberId}/id-document`, {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ status: "approved" }),
-                            }).then(() => {
-                              router.refresh();
-                            })
-                          }
+                          onClick={() => reviewIdDocument("approved")}
                           className="rounded-sm bg-sage px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-sage-hover disabled:opacity-60"
                         >
                           Approve ID
@@ -318,15 +361,7 @@ export function AdminMemberDetail({
                         <button
                           type="button"
                           disabled={loading}
-                          onClick={() =>
-                            fetch(`/api/admin/members/${memberId}/id-document`, {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ status: "rejected" }),
-                            }).then(() => {
-                              router.refresh();
-                            })
-                          }
+                          onClick={() => reviewIdDocument("rejected")}
                           className="rounded-sm border border-plum/15 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-plum hover:border-brand hover:text-brand disabled:opacity-60"
                         >
                           Reject ID
@@ -459,23 +494,95 @@ export function AdminMemberDetail({
 
         <section className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">
           <h3 className="font-display text-2xl text-plum">Membership & account controls</h3>
+          <p className="mt-2 text-sm text-muted">
+            These settings control how this member appears for billing and studio access. Save
+            after making changes.
+          </p>
           <div className="mt-4 space-y-4">
-            <select className={inputClass} value={form.membershipPlan} onChange={(e) => setForm({ ...form, membershipPlan: e.target.value })}>
-              <option value={MEMBERSHIP_PLAN.account}>Studio Member</option>
-              <option value={MEMBERSHIP_PLAN.monthly}>Monthly Membership</option>
-            </select>
-            <select className={inputClass} value={form.membershipStatus} onChange={(e) => setForm({ ...form, membershipStatus: e.target.value })}>
-              {Object.values(MEMBERSHIP_STATUS).map((status) => (
-                <option key={status} value={status}>{membershipStatusLabel(status)}</option>
-              ))}
-            </select>
-            <input className={inputClass} type="number" min={0} value={form.creditsRemaining} onChange={(e) => setForm({ ...form, creditsRemaining: Number(e.target.value) })} placeholder="Credits remaining" />
-            <select className={inputClass} value={form.accountStatus} onChange={(e) => setForm({ ...form, accountStatus: e.target.value })}>
-              {Object.values(ACCOUNT_STATUS).map((status) => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-            <textarea className={`${inputClass} min-h-28`} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal admin notes (staff only)" />
+            <div>
+              <label className="block text-sm font-semibold text-plum">Membership plan</label>
+              <p className="mt-1 text-xs text-muted">
+                Studio Member is the standard free account used for booking. Monthly Membership
+                is a legacy paid plan and is no longer offered to new members.
+              </p>
+              <select
+                className={`${inputClass} mt-2`}
+                value={form.membershipPlan}
+                onChange={(e) => setForm({ ...form, membershipPlan: e.target.value })}
+              >
+                <option value={MEMBERSHIP_PLAN.account}>Studio Member</option>
+                <option value={MEMBERSHIP_PLAN.monthly}>Monthly Membership</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-plum">Membership status</label>
+              <p className="mt-1 text-xs text-muted">
+                Lifecycle of the membership record: Active can book as normal; Paused temporarily
+                holds a paid membership; Cancelled/Expired/Inactive mark it as ended or inactive.
+                Prefer the Membership actions below for pause/cancel when possible.
+              </p>
+              <select
+                className={`${inputClass} mt-2`}
+                value={form.membershipStatus}
+                onChange={(e) => setForm({ ...form, membershipStatus: e.target.value })}
+              >
+                {Object.values(MEMBERSHIP_STATUS).map((status) => (
+                  <option key={status} value={status}>
+                    {membershipStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-plum">Class credits remaining</label>
+              <p className="mt-1 text-xs text-muted">
+                How many class-pack credits this member currently has. Increase or decrease to
+                adjust their balance manually.
+              </p>
+              <input
+                className={`${inputClass} mt-2`}
+                type="number"
+                min={0}
+                step={0.5}
+                value={form.creditsRemaining}
+                onChange={(e) =>
+                  setForm({ ...form, creditsRemaining: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-plum">Account access</label>
+              <p className="mt-1 text-xs text-muted">
+                Staff safeguarding flag (Active / Suspended / Banned). Separate from membership
+                billing status. Use for conduct or safety notes — it does not currently block
+                bookings on its own.
+              </p>
+              <select
+                className={`${inputClass} mt-2`}
+                value={form.accountStatus}
+                onChange={(e) => setForm({ ...form, accountStatus: e.target.value })}
+              >
+                {Object.values(ACCOUNT_STATUS).map((status) => (
+                  <option key={status} value={status}>
+                    {accountStatusLabel(status)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-plum">
+                Internal admin notes
+              </label>
+              <p className="mt-1 text-xs text-muted">
+                Staff-only notes. Members never see this field.
+              </p>
+              <textarea
+                className={`${inputClass} mt-2 min-h-28`}
+                value={form.internalNotes}
+                onChange={(e) => setForm({ ...form, internalNotes: e.target.value })}
+                placeholder="Internal admin notes (staff only)"
+              />
+            </div>
           </div>
         </section>
 

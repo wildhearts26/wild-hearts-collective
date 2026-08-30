@@ -583,6 +583,63 @@ export async function sendNewMemberRegisteredEmail(member: NewMemberDetails) {
   });
 }
 
+export async function sendChildIdDocumentReviewEmail(input: {
+  toEmail: string;
+  parentName: string;
+  childName: string;
+  status: "approved" | "rejected";
+  reviewNote?: string | null;
+}) {
+  const familyUrl = `${getAppBaseUrl()}/account/family`;
+  const safeChild = escapeHtml(input.childName);
+  const safeParent = escapeHtml(input.parentName);
+  const safeNote = input.reviewNote?.trim()
+    ? escapeHtml(input.reviewNote.trim())
+    : null;
+  const rejected = input.status === "rejected";
+
+  await sendEmail({
+    to: input.toEmail,
+    subject: rejected
+      ? `Identification update needed for ${input.childName}`
+      : `Identification approved for ${input.childName}`,
+    html: buildBrandedEmail({
+      previewText: rejected
+        ? `Please upload a new ID document for ${input.childName}.`
+        : `Identification for ${input.childName} has been approved.`,
+      heading: rejected ? "Identification not accepted" : "Identification approved",
+      bodyHtml: rejected
+        ? `
+          <p>Hi ${safeParent},</p>
+          <p>
+            We could not accept the parent/guardian identification document submitted for
+            <strong>${safeChild}</strong>.
+          </p>
+          ${
+            safeNote
+              ? `<p><strong>Studio note:</strong> ${safeNote}</p>`
+              : ""
+          }
+          <p>
+            ${safeChild} cannot book classes until a new identification document is uploaded
+            from your Family members page.
+          </p>
+        `
+        : `
+          <p>Hi ${safeParent},</p>
+          <p>
+            The parent/guardian identification document for <strong>${safeChild}</strong>
+            has been approved. You can book classes for them as usual.
+          </p>
+        `,
+      cta: {
+        label: rejected ? "Upload new identification" : "Open family members",
+        href: familyUrl,
+      },
+    }),
+  });
+}
+
 export function isEmailConfigured() {
   return Boolean(process.env.RESEND_API_KEY);
 }

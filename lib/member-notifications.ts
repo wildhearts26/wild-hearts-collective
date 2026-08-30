@@ -2,6 +2,7 @@ import {
   sendMembershipCancelledAdminEmail,
   sendMembershipPausedAdminEmail,
   sendNewMemberRegisteredEmail,
+  sendChildIdDocumentReviewEmail,
 } from "@/lib/email";
 
 export async function notifyAdminOfNewMember(member: {
@@ -16,6 +17,20 @@ export async function notifyAdminOfNewMember(member: {
     await sendNewMemberRegisteredEmail(member);
   } catch (error) {
     console.error("[member-notify]", error);
+  }
+}
+
+export async function notifyParentOfIdDocumentReview(input: {
+  toEmail: string;
+  parentName: string;
+  childName: string;
+  status: "approved" | "rejected";
+  reviewNote?: string | null;
+}) {
+  try {
+    await sendChildIdDocumentReviewEmail(input);
+  } catch (error) {
+    console.error("[member-notify:id-review]", error);
   }
 }
 

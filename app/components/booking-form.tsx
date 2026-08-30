@@ -98,6 +98,7 @@ type MemberProfile = {
   memberType?: string;
   parentalConsentComplete?: boolean;
   idDocumentUploaded?: boolean;
+  idDocumentStatus?: string | null;
   household?: {
     id: string;
     name: string;
@@ -1269,7 +1270,13 @@ export function BookingForm() {
               !hasSelectableSession ||
               !selectedSessionId ||
               !acceptedTerms ||
-              Boolean(selectedSession?.alreadyBooked)
+              Boolean(selectedSession?.alreadyBooked) ||
+              Boolean(
+                member?.isChild &&
+                  (!member.parentalConsentComplete ||
+                    !member.idDocumentUploaded ||
+                    member.idDocumentStatus === "rejected"),
+              )
             }
             className="w-full rounded-lg bg-sage px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-md shadow-sage/15 transition hover:bg-sage-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -1301,9 +1308,13 @@ export function BookingForm() {
             </p>
             <p className="mt-2 font-semibold text-plum">{member.name}</p>
             {member.isChild &&
-            (!member.parentalConsentComplete || !member.idDocumentUploaded) ? (
+            (!member.parentalConsentComplete ||
+              !member.idDocumentUploaded ||
+              member.idDocumentStatus === "rejected") ? (
               <p className="mt-3 text-sm text-brand">
-                Parental consent and ID are required before this child can book.{" "}
+                {member.idDocumentStatus === "rejected"
+                  ? "The identification document for this child was not accepted. Upload a new one before booking."
+                  : "Parental consent and ID are required before this child can book."}{" "}
                 <Link href="/account/family" className="font-semibold underline">
                   Open family members
                 </Link>
