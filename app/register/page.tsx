@@ -20,7 +20,8 @@ export default async function RegisterPage() {
         <h1 className="font-display text-4xl text-plum">Create your account</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">
           Join Wild Hearts Collective to book classes, pay online, and keep track of your
-          studio bookings.
+          studio bookings. After you create your account, you can add child members who share
+          this email — they book and pay separately.
         </p>
 
         <div className="mt-8">

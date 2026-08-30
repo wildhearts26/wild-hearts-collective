@@ -1,4 +1,5 @@
 import { notifyAdminOfNewMember } from "@/lib/member-notifications";
+import { findLoginUserByEmail } from "@/lib/household-service";
 import { MEMBERSHIP_PLAN, MEMBERSHIP_STATUS } from "@/lib/membership-config";
 import { db } from "@/lib/db";
 
@@ -139,7 +140,7 @@ export async function findOrCreateGoogleUser(profile: GoogleProfile): Promise<Go
     return { user, isNew: false };
   }
 
-  const existingUser = await db.user.findUnique({ where: { email } });
+  const existingUser = await findLoginUserByEmail(email);
 
   if (existingUser) {
     await db.oAuthAccount.create({

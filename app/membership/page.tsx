@@ -188,8 +188,8 @@ export default async function MembershipPage() {
           <h2 className="font-display text-3xl text-plum">Ready to fly?</h2>
           <p>
             {isSignedIn
-              ? "All classes must be booked in advance. Your bookings are linked to your account automatically."
-              : "All classes must be booked in advance. Once you\u2019re signed in, your bookings are linked to your account automatically — even when you use our existing booking page."}
+              ? "All classes must be booked in advance. Switch to a child member before booking for them — their classes and credits stay on their own membership."
+              : "All classes must be booked in advance. Once you\u2019re signed in, your bookings are linked to your account. Parents can add child members who share the same email; switch to the child before booking so they pay and attend separately."}
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
             {isSignedIn ? (

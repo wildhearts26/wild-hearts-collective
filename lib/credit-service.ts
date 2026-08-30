@@ -330,7 +330,10 @@ async function resolveRefundUserId(
   if (booking.userId) return booking.userId;
 
   const user = await tx.user.findFirst({
-    where: { email: { equals: booking.email, mode: "insensitive" } },
+    where: {
+      email: { equals: booking.email, mode: "insensitive" },
+      guardianUserId: null,
+    },
     select: { id: true },
   });
   return user?.id ?? null;

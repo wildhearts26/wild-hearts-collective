@@ -94,8 +94,8 @@ model Session {
 }
 
 model User {
-  id                           String              @id @default(cuid())
-  email                        String              @unique
+  id                           String               @id @default(cuid())
+  email                        String
   passwordHash                 String?
   name                         String
   phone                        String?
@@ -115,43 +115,74 @@ model User {
   experienceLevel              String?
   disciplineInterests          String?
   notificationPreferences      String?
-  stripeCustomerId             String?             @unique
-  membershipPlan               String              @default("account")
-  membershipStatus             String              @default("active")
-  accountStatus                String              @default("active")
-  stripeSubscriptionId         String?             @unique
+  stripeCustomerId             String?              @unique
+  membershipPlan               String               @default("account")
+  membershipStatus             String               @default("active")
+  accountStatus                String               @default("active")
+  stripeSubscriptionId         String?              @unique
   membershipStartedAt          DateTime?
   membershipRenewsAt           DateTime?
   membershipPausedAt           DateTime?
   membershipResumeAt           DateTime?
   membershipCancelledAt        DateTime?
   cancellationReason           String?
-  creditsRemaining             Float               @default(0)
-  totalClassesAttended         Int                 @default(0)
+  creditsRemaining             Float                @default(0)
+  totalClassesAttended         Int                  @default(0)
   lastClassAttendedAt          DateTime?
   milestonesAwarded            Json?
   internalNotes                String?
-  createdAt                    DateTime            @default(now())
-  updatedAt                    DateTime            @updatedAt
+  /** adult | child */
+  memberType                   String               @default("adult")
+  guardianUserId               String?
+  guardian                     User?                @relation("HouseholdMembers", fields: [guardianUserId], references: [id], onDelete: Restrict)
+  householdMembers             User[]               @relation("HouseholdMembers")
+  parentalConsentAt            DateTime?
+  parentalConsentName          String?
+  parentalConsentRelationship  String?
+  parentalConsentVersion       String?
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
   bookings                     Booking[]
   waitlist                     WaitlistEntry[]
   oauthAccounts                OAuthAccount[]
   verificationCodes            VerificationCode[]
   membershipEvents             MembershipEvent[]
-  auditLogs                    AdminAuditLog[]     @relation("AuditTarget")
+  auditLogs                    AdminAuditLog[]      @relation("AuditTarget")
   classPackPurchases           ClassPackPurchase[]
   creditTransactions           CreditTransaction[]
   vouchers                     Voucher[]
   parQResponse                 ParQResponse?
   engagementLogs               EngagementLog[]
   classFeedbacks               ClassFeedback[]
+  idDocuments                  GuardianIdDocument[]
 
   @@index([email])
+  @@index([guardianUserId])
+  @@index([memberType])
   @@index([membershipStatus])
   @@index([accountStatus])
   @@index([experienceLevel])
   @@index([dateOfBirth])
   @@index([lastClassAttendedAt])
+}
+
+/** Parent/guardian photo ID stored privately for child-member consent. */
+model GuardianIdDocument {
+  id                String    @id @default(cuid())
+  childUserId       String
+  child             User      @relation(fields: [childUserId], references: [id], onDelete: Cascade)
+  fileName          String
+  mimeType          String
+  data              Bytes
+  uploadedAt        DateTime  @default(now())
+  /** pending | approved | rejected */
+  status            String    @default("pending")
+  reviewedAt        DateTime?
+  reviewedByAdminId String?
+  reviewNote        String?
+
+  @@index([childUserId])
+  @@index([status])
 }
 
 model OAuthAccount {

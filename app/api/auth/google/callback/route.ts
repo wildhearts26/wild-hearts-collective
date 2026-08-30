@@ -45,7 +45,8 @@ export async function GET(request: Request) {
     }
 
     const { user } = await findOrCreateGoogleUser(profile);
-    const sessionToken = createMemberSessionToken(user.id);
+    const loginId = user.guardianUserId ?? user.id;
+    const sessionToken = createMemberSessionToken(loginId, loginId);
     cookieStore.set(setMemberSessionCookie(sessionToken));
 
     return NextResponse.redirect(`${getAppBaseUrl()}${nextPath.startsWith("/") ? nextPath : "/account"}`);

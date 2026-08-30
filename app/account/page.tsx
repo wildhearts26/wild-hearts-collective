@@ -147,6 +147,33 @@ export default async function AccountPage() {
           </section>
 
           <section className="rounded-sm border border-plum/10 bg-surface p-6">
+            <h2 className="font-display text-2xl text-plum">Family members</h2>
+            <p className="mt-2 text-sm text-muted">
+              Add child members who share this email. They keep their own bookings, credits, and
+              payments.
+            </p>
+            {member.household.length > 1 ? (
+              <ul className="mt-4 space-y-2 text-sm text-plum">
+                {member.household.map((person) => (
+                  <li key={person.id}>
+                    {person.name}
+                    {person.isActive ? " (active)" : ""}
+                    {person.memberType === "child" ? " — child" : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-muted">No child members added yet.</p>
+            )}
+            <Link
+              href="/account/family"
+              className="mt-4 inline-block rounded-sm bg-sage px-5 py-2.5 text-sm font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
+            >
+              {member.household.length > 1 ? "Manage family" : "Add a child member"}
+            </Link>
+          </section>
+
+          <section className="rounded-sm border border-plum/10 bg-surface p-6">
             <h2 className="font-display text-2xl text-plum">Quick links</h2>
             <ul className="mt-4 space-y-2 text-sm">
               <li>
@@ -168,6 +195,14 @@ export default async function AccountPage() {
                   className="font-semibold text-brand hover:underline"
                 >
                   Class credits
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/account/family"
+                  className="font-semibold text-brand hover:underline"
+                >
+                  Family members
                 </Link>
               </li>
               <li>

@@ -119,7 +119,16 @@ export async function PATCH(request: Request) {
     data.notificationPreferences = serializeNotificationPreferences(body.notificationPreferences);
   }
 
-  if (body.newPassword) {
+    if (body.newPassword) {
+    if (user.guardianUserId) {
+      return NextResponse.json(
+        {
+          error:
+            "The household password belongs to the parent login. Switch to the parent account to change it.",
+        },
+        { status: 400 },
+      );
+    }
     if (body.newPassword.length < 8) {
       return NextResponse.json(
         { error: "New password must be at least 8 characters." },

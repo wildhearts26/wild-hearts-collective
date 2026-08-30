@@ -212,7 +212,7 @@ export async function findActiveSessionBooking(input: {
   const email = input.email.trim().toLowerCase();
   const cutoff = paymentHoldCutoff();
   const identityFilter = input.userId
-    ? { OR: [{ email }, { userId: input.userId }] }
+    ? { userId: input.userId }
     : { email };
 
   return db.booking.findFirst({

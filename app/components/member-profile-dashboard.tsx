@@ -288,6 +288,11 @@ export function MemberProfileDashboard({
                   <span className="rounded-full bg-sage/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-plum">
                     {membershipPlanLabel(profile.membership.plan)}
                   </span>
+                  {profile.isChild ? (
+                    <span className="rounded-full bg-pink-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
+                      Child member
+                    </span>
+                  ) : null}
                 </div>
                 <dl className="grid gap-4 text-sm sm:grid-cols-2">
                   <div>
@@ -335,7 +340,14 @@ export function MemberProfileDashboard({
               <Field label="Full name">
                 <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
               </Field>
-              <Field label="Email">
+              <Field
+                label="Email"
+                hint={
+                  profile.isChild
+                    ? "This child uses the household email. Sign in still happens on the parent account."
+                    : "Child members you add will share this email."
+                }
+              >
                 <input className={`${inputClass} bg-cream/60 text-muted`} value={profile.email} disabled />
               </Field>
               <Field label="Phone number">
@@ -597,6 +609,16 @@ export function MemberProfileDashboard({
           </ProfileCard>
 
           <ProfileCard id="security" title="Account & security" collapsible defaultOpen={false}>
+            {profile.isChild ? (
+              <p className="text-sm text-muted">
+                This child member shares the household login. Switch to the parent account to
+                change the password.
+              </p>
+            ) : isGoogleAccount ? (
+              <p className="text-sm text-muted">
+                This account uses Google sign-in. Password changes are not available here.
+              </p>
+            ) : (
             <form
               className="space-y-4"
               onSubmit={(event) => {
@@ -617,6 +639,7 @@ export function MemberProfileDashboard({
                 Update password
               </button>
             </form>
+            )}
             <p className="mt-6 text-sm text-muted">
               Two-factor authentication and account deletion requests can be arranged by contacting the studio. We handle GDPR requests manually while the community features are expanded.
             </p>

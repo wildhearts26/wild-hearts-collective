@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BookingEmbeddedCheckout } from "@/app/components/booking-embedded-checkout";
+import { MemberSwitcher } from "@/app/components/member-switcher";
 import { CLASS_TYPE_OPTIONS } from "@/lib/admin-studio-config";
 import { formatSessionDateParts } from "@/lib/booking-config";
 import { BOOKING_TERMS_SCROLL_TEXT } from "@/lib/booking-terms";
@@ -93,6 +94,17 @@ type MemberProfile = {
   phone: string | null;
   creditsRemaining?: number;
   parQCompleted?: boolean;
+  isChild?: boolean;
+  memberType?: string;
+  parentalConsentComplete?: boolean;
+  idDocumentUploaded?: boolean;
+  household?: {
+    id: string;
+    name: string;
+    memberType: string;
+    isActive: boolean;
+    image: string | null;
+  }[];
 };
 
 type ContactDetails = {
@@ -415,6 +427,11 @@ export function BookingForm() {
         if (data.parQRequired) {
           throw new Error(
             `${data.error} Complete your PAR-Q form at /account/parq before booking.`,
+          );
+        }
+        if (data.parentalConsentRequired) {
+          throw new Error(
+            `${data.error} Open Family members in your account to complete consent and ID.`,
           );
         }
         throw new Error(data.error || "Booking failed.");
@@ -859,13 +876,18 @@ export function BookingForm() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
-                        Signed in as
+                        {member.isChild ? "Booking as child member" : "Signed in as"}
                       </p>
                       <p className="mt-2 font-semibold text-plum">{member.name}</p>
                       <p className="mt-1 text-sm text-muted">{member.email}</p>
                       {member.phone && (
                         <p className="mt-1 text-sm text-muted">{member.phone}</p>
                       )}
+                      {member.household && member.household.length > 1 ? (
+                        <div className="mt-4 max-w-sm">
+                          <MemberSwitcher members={member.household} compact />
+                        </div>
+                      ) : null}
                     </div>
                     <div className="flex flex-col items-start gap-2 sm:items-end">
                       <Link
@@ -1275,9 +1297,18 @@ export function BookingForm() {
         {isSignedIn && member && (
           <div className="rounded-2xl border border-plum/10 bg-surface p-6 shadow-sm ring-1 ring-plum/5">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
-              Your account
+              {member.isChild ? "Child member" : "Your account"}
             </p>
             <p className="mt-2 font-semibold text-plum">{member.name}</p>
+            {member.isChild &&
+            (!member.parentalConsentComplete || !member.idDocumentUploaded) ? (
+              <p className="mt-3 text-sm text-brand">
+                Parental consent and ID are required before this child can book.{" "}
+                <Link href="/account/family" className="font-semibold underline">
+                  Open family members
+                </Link>
+              </p>
+            ) : null}
             <dl className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt className="text-muted">Class credits</dt>

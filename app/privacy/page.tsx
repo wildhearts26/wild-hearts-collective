@@ -56,7 +56,14 @@ export default function PrivacyPage() {
           <ul className="list-disc space-y-2 pl-5">
             <li>
               <strong>Identity & contact details</strong> — name, email address,
-              phone number, and emergency contact information.
+              phone number, date of birth, and emergency contact information.
+            </li>
+            <li>
+              <strong>Child membership & parental consent</strong> — where a
+              member is under 18, we record that they are a child member, the
+              parent or guardian&apos;s consent, their relationship to the child,
+              and a copy of the parent or guardian&apos;s identification document
+              so we can confirm consent is genuine.
             </li>
             <li>
               <strong>Booking information</strong> — classes booked, attendance
@@ -89,6 +96,10 @@ export default function PrivacyPage() {
             <li>Process class bookings and manage your account</li>
             <li>Communicate about classes, schedule changes, and studio updates</li>
             <li>Ensure health, safety, and safeguarding in our sessions</li>
+            <li>
+              Verify parental consent for child members and review identification
+              documents for safeguarding
+            </li>
             <li>Respond to enquiries and provide customer support</li>
             <li>Improve our website, services, and community offerings</li>
             <li>Meet legal, insurance, and regulatory obligations</li>
@@ -115,7 +126,11 @@ export default function PrivacyPage() {
             We retain personal data only for as long as needed for the purposes
             described above, including legal, accounting, and insurance
             requirements. Health and safety records may be kept for a defined
-            period in line with industry practice.
+            period in line with industry practice. Parent or guardian
+            identification documents are stored privately, accessible only to
+            authorised studio staff, and are deleted when the related child
+            membership ends plus any period we must keep them for safeguarding,
+            insurance, or legal reasons.
           </p>
         </ProseBlock>
       </ContentSection>
@@ -167,7 +182,7 @@ export default function PrivacyPage() {
             or contact us if you have questions.
           </p>
           <p className="text-sm text-muted">
-            Last updated: July 2026
+            Last updated: August 2026
           </p>
         </ProseBlock>
       </ContentSection>

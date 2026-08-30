@@ -128,6 +128,14 @@ function AccountDropdown({
               >
                 My account
               </Link>
+              <Link
+                href="/account/family"
+                role="menuitem"
+                className={menuItemClass}
+                onClick={() => setOpen(false)}
+              >
+                Family members
+              </Link>
               <button
                 type="button"
                 role="menuitem"

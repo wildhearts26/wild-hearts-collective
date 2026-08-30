@@ -41,6 +41,7 @@ export function buildMembershipPlans() {
         "Book classes online with secure full payment in advance",
         "View upcoming and past bookings",
         "Join waitlists when sessions are full",
+        "Add child members who share your email, with parental consent",
         "Update your profile anytime",
       ],
       cta: "Create free account",

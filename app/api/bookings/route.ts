@@ -26,6 +26,7 @@ import {
 } from "@/lib/gift-card-service";
 import { getMemberSession } from "@/lib/member-auth";
 import { assertParQCompleteForSession, ParQRequiredError } from "@/lib/parq-service";
+import { assertChildCanBook, ChildConsentRequiredError } from "@/lib/household-service";
 import { createBookingCheckoutSession } from "@/lib/stripe";
 import {
   resolveBookingPaymentAmountPence,
@@ -174,6 +175,20 @@ export async function POST(request: Request) {
     throw error;
   }
 
+  if (userId) {
+    try {
+      await assertChildCanBook(userId);
+    } catch (error) {
+      if (error instanceof ChildConsentRequiredError) {
+        return NextResponse.json(
+          { error: error.message, parentalConsentRequired: true },
+          { status: 403 },
+        );
+      }
+      throw error;
+    }
+  }
+
   try {
     await assertCanBookSession({
       sessionId,
@@ -201,8 +216,8 @@ export async function POST(request: Request) {
     const existingWaitlist = await db.waitlistEntry.findFirst({
       where: {
         sessionId,
-        email: normalizedEmail,
         status: { in: ["waiting", "notified"] },
+        ...(userId ? { userId } : { email: normalizedEmail }),
       },
     });
 

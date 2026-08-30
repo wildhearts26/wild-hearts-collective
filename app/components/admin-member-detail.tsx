@@ -22,6 +22,7 @@ import {
   formatUkDateTimeShort,
 } from "@/lib/booking-config";
 import type { MemberProfile } from "@/lib/member-profile-service";
+import { idDocumentStatusLabel, memberTypeLabel } from "@/lib/household-config";
 
 type AdminMemberDetailProps = {
   memberId: string;
@@ -56,6 +57,17 @@ type AdminMemberDetailProps = {
     completedAt: string | null;
     data: Record<string, unknown> | null;
   };
+  guardian?: { id: string; name: string } | null;
+  householdChildren?: { id: string; name: string }[];
+  idDocument?: {
+    id: string;
+    fileName: string;
+    mimeType: string;
+    uploadedAt: string;
+    status: string;
+    reviewedAt: string | null;
+    reviewNote: string | null;
+  } | null;
 };
 
 const inputClass =
@@ -73,6 +85,9 @@ export function AdminMemberDetail({
   recentBookings,
   auditLogs,
   parQStatus,
+  guardian = null,
+  householdChildren = [],
+  idDocument = null,
 }: AdminMemberDetailProps) {
   const router = useRouter();
   const [member, setMember] = useState(initialMember);
@@ -185,9 +200,19 @@ export function AdminMemberDetail({
               initialsClassName="text-2xl"
             />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-brand">Member profile</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand">
+                {memberTypeLabel(member.memberType)}
+              </p>
               <h2 className="mt-2 font-display text-3xl text-plum">{member.name}</h2>
               <p className="mt-1 text-sm text-muted">{member.email}</p>
+              {guardian ? (
+                <p className="mt-1 text-sm text-muted">
+                  Guardian:{" "}
+                  <Link href={`/admin/members/${guardian.id}`} className="font-semibold text-brand hover:underline">
+                    {guardian.name}
+                  </Link>
+                </p>
+              ) : null}
               <p className="mt-2 text-xs text-muted">
                 Joined {formatDate(member.createdAt)} · {member.signupMethod} ·{" "}
                 {member.bookingCount} booking{member.bookingCount === 1 ? "" : "s"}
@@ -200,6 +225,11 @@ export function AdminMemberDetail({
             >
               {membershipStatusLabel(member.membership.status)}
             </span>
+            {member.isChild && (
+              <span className="inline-flex rounded-full bg-pink-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
+                Child
+              </span>
+            )}
             {member.membership.accountStatus !== ACCOUNT_STATUS.active && (
               <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-red-800">
                 {member.membership.accountStatus}
@@ -227,6 +257,101 @@ export function AdminMemberDetail({
           </div>
         </dl>
       </section>
+
+      {(member.isChild || householdChildren.length > 0) && (
+        <section className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">
+          <h3 className="font-display text-2xl text-plum">
+            {member.isChild ? "Parental consent & identification" : "Child members"}
+          </h3>
+          {member.isChild ? (
+            <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-muted">Consent given</dt>
+                <dd className="font-semibold text-plum">
+                  {member.parentalConsent.givenAt
+                    ? `${formatDate(member.parentalConsent.givenAt)} by ${member.parentalConsent.name ?? "parent/guardian"}`
+                    : "Missing"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted">Relationship</dt>
+                <dd className="font-semibold text-plum">
+                  {member.parentalConsent.relationship ?? "—"}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-muted">Identification</dt>
+                <dd className="mt-1">
+                  {idDocument ? (
+                    <div className="space-y-3">
+                      <p className="font-semibold text-plum">
+                        {idDocument.fileName} · {idDocumentStatusLabel(idDocument.status)}
+                      </p>
+                      <p className="text-xs text-muted">
+                        Uploaded {formatUkDateTimeShort(idDocument.uploadedAt)}
+                      </p>
+                      <a
+                        href={`/api/admin/members/${memberId}/id-document`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex text-sm font-semibold text-brand hover:underline"
+                      >
+                        View identification document
+                      </a>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() =>
+                            fetch(`/api/admin/members/${memberId}/id-document`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status: "approved" }),
+                            }).then(() => {
+                              router.refresh();
+                            })
+                          }
+                          className="rounded-sm bg-sage px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-sage-hover disabled:opacity-60"
+                        >
+                          Approve ID
+                        </button>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() =>
+                            fetch(`/api/admin/members/${memberId}/id-document`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status: "rejected" }),
+                            }).then(() => {
+                              router.refresh();
+                            })
+                          }
+                          className="rounded-sm border border-plum/15 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-plum hover:border-brand hover:text-brand disabled:opacity-60"
+                        >
+                          Reject ID
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="font-semibold text-brand">No identification uploaded</p>
+                  )}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <ul className="mt-4 space-y-2 text-sm">
+              {householdChildren.map((child) => (
+                <li key={child.id}>
+                  <Link href={`/admin/members/${child.id}`} className="font-semibold text-brand hover:underline">
+                    {child.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <AdminParQPanel
         completed={parQStatus.completed}

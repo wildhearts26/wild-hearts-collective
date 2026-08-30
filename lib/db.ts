@@ -80,7 +80,8 @@ function getPrismaClient() {
     cached &&
     "shopProduct" in cached &&
     "studioSetting" in cached &&
-    "adminUser" in cached
+    "adminUser" in cached &&
+    "guardianIdDocument" in cached
   ) {
     return cached;
   }

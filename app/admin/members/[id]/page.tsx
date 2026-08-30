@@ -8,6 +8,7 @@ import { requireAdminPage } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import { profileSelectFields, toMemberProfile } from "@/lib/member-profile-service";
 import { getParQStatus } from "@/lib/parq-service";
+import { getLatestIdDocumentMeta } from "@/lib/household-service";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -41,7 +42,8 @@ export default async function AdminMemberDetailPage({ params }: PageProps) {
     user.oauthAccounts.find((account) => account.profileImageUrl)?.profileImageUrl ??
     null;
 
-  const [timeline, recentBookings, auditLogs, parQStatus] = await Promise.all([
+  const [timeline, recentBookings, auditLogs, parQStatus, guardian, householdChildren, idDocument] =
+    await Promise.all([
     db.membershipEvent.findMany({
       where: { userId: id },
       orderBy: { effectiveAt: "desc" },
@@ -59,6 +61,18 @@ export default async function AdminMemberDetailPage({ params }: PageProps) {
       take: 20,
     }),
     getParQStatus(id),
+    user.guardianUserId
+      ? db.user.findUnique({
+          where: { id: user.guardianUserId },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve(null),
+    db.user.findMany({
+      where: { guardianUserId: id },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    getLatestIdDocumentMeta(id),
   ]);
 
   return (
@@ -116,6 +130,21 @@ export default async function AdminMemberDetailPage({ params }: PageProps) {
             completedAt: parQStatus?.completedAt ?? null,
             data: (parQStatus?.data as Record<string, unknown> | null) ?? null,
           }}
+          guardian={guardian}
+          householdChildren={householdChildren}
+          idDocument={
+            idDocument
+              ? {
+                  id: idDocument.id,
+                  fileName: idDocument.fileName,
+                  mimeType: idDocument.mimeType,
+                  uploadedAt: idDocument.uploadedAt.toISOString(),
+                  status: idDocument.status,
+                  reviewedAt: idDocument.reviewedAt?.toISOString() ?? null,
+                  reviewNote: idDocument.reviewNote,
+                }
+              : null
+          }
         />
       </div>
     </div>

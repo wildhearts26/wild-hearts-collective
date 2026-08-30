@@ -131,15 +131,6 @@ async function loadSessions(classSlug: string | null) {
     seriesById.set(row.courseSeriesId, list);
   }
 
-  let memberEmail: string | null = null;
-  if (memberSession?.userId) {
-    const member = await db.user.findUnique({
-      where: { id: memberSession.userId },
-      select: { email: true },
-    });
-    memberEmail = member?.email?.toLowerCase() ?? null;
-  }
-
   const priced = await Promise.all(
     sessions.map(async (session) => {
       const pricePence = await resolveBookingPaymentAmountPence({
@@ -156,11 +147,7 @@ async function loadSessions(classSlug: string | null) {
     const spotsLeft = session.capacity - heldCount;
     const alreadyBooked = Boolean(
       memberSession?.userId &&
-        session.bookings.some(
-          (booking) =>
-            booking.userId === memberSession.userId ||
-            (memberEmail != null && booking.email.toLowerCase() === memberEmail),
-        ),
+        session.bookings.some((booking) => booking.userId === memberSession.userId),
     );
     const minutes = durationMinutes(
       session.startsAt,

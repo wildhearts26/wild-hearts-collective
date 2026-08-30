@@ -17,10 +17,12 @@ function getMemberSecret() {
 export type MemberSessionPayload = {
   role: "member";
   userId: string;
+  /** Login account for the household. Defaults to userId for adult-only sessions. */
+  guardianId?: string;
   issuedAt: number;
 };
 
-export function createMemberSessionToken(userId: string) {
+export function createMemberSessionToken(userId: string, guardianId = userId) {
   const secret = getMemberSecret();
   if (!secret) {
     throw new Error("Member sessions are not configured.");
@@ -29,6 +31,7 @@ export function createMemberSessionToken(userId: string) {
   const payload: MemberSessionPayload = {
     role: "member",
     userId,
+    guardianId,
     issuedAt: Date.now(),
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -58,7 +61,10 @@ export function verifyMemberSessionToken(token: string) {
     if (payload.role !== "member" || !payload.userId) return null;
     if (Date.now() - payload.issuedAt > SESSION_MAX_AGE_MS) return null;
 
-    return payload;
+    return {
+      ...payload,
+      guardianId: payload.guardianId || payload.userId,
+    };
   } catch {
     return null;
   }
@@ -70,6 +76,14 @@ export async function getMemberSession() {
   if (!token) return null;
   return verifyMemberSessionToken(token);
 }
+
+export type HouseholdMemberOption = {
+  id: string;
+  name: string;
+  memberType: string;
+  isActive: boolean;
+  image: string | null;
+};
 
 export type PublicMember = {
   id: string;
@@ -85,23 +99,44 @@ export type PublicMember = {
   createdAt: Date;
   creditsRemaining: number;
   parQCompleted: boolean;
+  memberType: string;
+  isChild: boolean;
+  guardianId: string;
+  canManageHousehold: boolean;
+  household: HouseholdMemberOption[];
+  parentalConsentComplete: boolean;
+  idDocumentUploaded: boolean;
 };
 
-export function toPublicMember(user: {
-  id: string;
-  email: string;
-  name: string;
-  phone: string | null;
-  image?: string | null;
-  emailVerifiedAt?: Date | null;
-  phoneVerifiedAt?: Date | null;
-  membershipPlan: string;
-  membershipStatus: string;
-  membershipRenewsAt: Date | null;
-  createdAt: Date;
-  creditsRemaining?: number;
-  parQCompletedAt?: Date | null;
-}): PublicMember {
+export function toPublicMember(
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    phone: string | null;
+    image?: string | null;
+    emailVerifiedAt?: Date | null;
+    phoneVerifiedAt?: Date | null;
+    membershipPlan: string;
+    membershipStatus: string;
+    membershipRenewsAt: Date | null;
+    createdAt: Date;
+    creditsRemaining?: number;
+    parQCompletedAt?: Date | null;
+    memberType?: string | null;
+    guardianUserId?: string | null;
+    parentalConsentAt?: Date | null;
+  },
+  extras?: {
+    guardianId?: string;
+    household?: HouseholdMemberOption[];
+    idDocumentUploaded?: boolean;
+  },
+): PublicMember {
+  const memberType = user.memberType === "child" || user.guardianUserId ? "child" : "adult";
+  const guardianId = extras?.guardianId ?? user.guardianUserId ?? user.id;
+  const isChild = memberType === "child";
+
   return {
     id: user.id,
     email: user.email,
@@ -116,15 +151,19 @@ export function toPublicMember(user: {
     createdAt: user.createdAt,
     creditsRemaining: user.creditsRemaining ?? 0,
     parQCompleted: Boolean(user.parQCompletedAt),
+    memberType,
+    isChild,
+    guardianId,
+    canManageHousehold: user.id === guardianId,
+    household: extras?.household ?? [],
+    parentalConsentComplete: !isChild || Boolean(user.parentalConsentAt),
+    idDocumentUploaded: extras?.idDocumentUploaded ?? !isChild,
   };
 }
 
 export async function getCurrentMember() {
   const session = await getMemberSession();
   if (!session) return null;
-
-  const { ensureGoogleProfileImage } = await import("@/lib/google-auth-service");
-  await ensureGoogleProfileImage(session.userId);
 
   const user = await db.user.findUnique({
     where: { id: session.userId },
@@ -142,11 +181,41 @@ export async function getCurrentMember() {
       createdAt: true,
       creditsRemaining: true,
       parQCompletedAt: true,
+      memberType: true,
+      guardianUserId: true,
+      parentalConsentAt: true,
     },
   });
 
   if (!user) return null;
-  return toPublicMember(user);
+
+  const guardianId = session.guardianId || user.guardianUserId || user.id;
+  if (user.id !== guardianId && user.guardianUserId !== guardianId) {
+    return null;
+  }
+
+  const { ensureGoogleProfileImage } = await import("@/lib/google-auth-service");
+  await ensureGoogleProfileImage(session.userId);
+
+  const { listHouseholdMembers, getLatestIdDocumentMeta, isChildMember } = await import(
+    "@/lib/household-service"
+  );
+  const [household, idDocument] = await Promise.all([
+    listHouseholdMembers(guardianId, user.id),
+    isChildMember(user) ? getLatestIdDocumentMeta(user.id) : Promise.resolve(null),
+  ]);
+
+  return toPublicMember(user, {
+    guardianId,
+    household: household.map((member) => ({
+      id: member.id,
+      name: member.name,
+      memberType: member.memberType,
+      isActive: member.isActive,
+      image: member.image,
+    })),
+    idDocumentUploaded: Boolean(idDocument),
+  });
 }
 
 export function setMemberSessionCookie(token: string) {

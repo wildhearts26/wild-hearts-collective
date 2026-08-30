@@ -37,6 +37,12 @@ export type ProfileUserRecord = {
   creditsRemaining: number;
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
+  memberType?: string | null;
+  guardianUserId?: string | null;
+  parentalConsentAt?: Date | null;
+  parentalConsentName?: string | null;
+  parentalConsentRelationship?: string | null;
+  parentalConsentVersion?: string | null;
   createdAt: Date;
 };
 
@@ -77,6 +83,15 @@ export type MemberProfile = {
     cancellationReason: string | null;
     creditsRemaining: number;
     hasStripeSubscription: boolean;
+  };
+  memberType: string;
+  isChild: boolean;
+  guardianUserId: string | null;
+  parentalConsent: {
+    givenAt: string | null;
+    name: string | null;
+    relationship: string | null;
+    version: string | null;
   };
   profileCompletion: {
     percent: number;
@@ -261,6 +276,15 @@ export function toMemberProfile(user: ProfileUserRecord): MemberProfile {
       creditsRemaining: user.creditsRemaining,
       hasStripeSubscription: Boolean(user.stripeSubscriptionId),
     },
+    memberType: user.memberType === "child" || user.guardianUserId ? "child" : "adult",
+    isChild: user.memberType === "child" || Boolean(user.guardianUserId),
+    guardianUserId: user.guardianUserId ?? null,
+    parentalConsent: {
+      givenAt: toIso(user.parentalConsentAt ?? null),
+      name: user.parentalConsentName ?? null,
+      relationship: user.parentalConsentRelationship ?? null,
+      version: user.parentalConsentVersion ?? null,
+    },
     profileCompletion: calculateProfileCompletion(user),
     createdAt: user.createdAt.toISOString(),
   };
@@ -297,5 +321,11 @@ export const profileSelectFields = {
   creditsRemaining: true,
   stripeCustomerId: true,
   stripeSubscriptionId: true,
+  memberType: true,
+  guardianUserId: true,
+  parentalConsentAt: true,
+  parentalConsentName: true,
+  parentalConsentRelationship: true,
+  parentalConsentVersion: true,
   createdAt: true,
 } as const;

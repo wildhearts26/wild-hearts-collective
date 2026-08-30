@@ -542,25 +542,34 @@ type NewMemberDetails = {
   phone?: string | null;
   signupMethod: "email" | "google";
   emailVerified: boolean;
+  memberType?: "adult" | "child";
 };
 
 export async function sendNewMemberRegisteredEmail(member: NewMemberDetails) {
   const adminUrl = `${getAppBaseUrl()}/admin/members`;
   const methodLabel = member.signupMethod === "google" ? "Google" : "Email & password";
   const verifiedLabel = member.emailVerified ? "Verified" : "Pending verification";
+  const isChild = member.memberType === "child";
 
   await sendEmail({
     ...studioNotify(),
-    subject: `New member registered — ${member.name}`,
+    subject: `${isChild ? "New child member" : "New member registered"} — ${member.name}`,
     html: buildBrandedEmail({
-      previewText: `${member.name} just joined Wild Hearts Collective.`,
-      heading: "New member registered",
+      previewText: isChild
+        ? `${member.name} was added as a child member.`
+        : `${member.name} just joined Wild Hearts Collective.`,
+      heading: isChild ? "New child member" : "New member registered",
       bodyHtml: `
-        <p>A new studio member account has been created.</p>
+        <p>${
+          isChild
+            ? "A child member was added to an existing household. Please review parental consent and identification in the admin dashboard."
+            : "A new studio member account has been created."
+        }</p>
         <p>
           <strong>Name:</strong> ${member.name}<br />
           <strong>Email:</strong> ${member.email}<br />
           <strong>Phone:</strong> ${member.phone?.trim() || "—"}<br />
+          <strong>Member type:</strong> ${isChild ? "Child" : "Adult"}<br />
           <strong>Sign-up method:</strong> ${methodLabel}<br />
           <strong>Email status:</strong> ${verifiedLabel}
         </p>

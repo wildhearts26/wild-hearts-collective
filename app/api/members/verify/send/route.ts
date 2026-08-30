@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMemberSession } from "@/lib/member-auth";
+import { findLoginUserByEmail } from "@/lib/household-service";
 import { deliverVerificationCode } from "@/lib/verification-service";
 import { db } from "@/lib/db";
 import {
@@ -40,10 +41,11 @@ export async function POST(request: Request) {
     : null;
 
   if (!user && body.email) {
-    user = await db.user.findUnique({
-      where: { email: body.email.trim().toLowerCase() },
-      select: { id: true, email: true, name: true, phone: true },
-    });
+    user = await findLoginUserByEmail(body.email.trim().toLowerCase()).then((found) =>
+      found
+        ? { id: found.id, email: found.email, name: found.name, phone: found.phone }
+        : null,
+    );
   }
 
   if (!user) {

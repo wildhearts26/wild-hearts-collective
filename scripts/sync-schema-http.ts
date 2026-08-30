@@ -592,6 +592,62 @@ async function main() {
     'CREATE INDEX IF NOT EXISTS "AdminUser_active_idx" ON "AdminUser"("active")',
   );
 
+  await run(
+    'ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "memberType" TEXT NOT NULL DEFAULT \'adult\'',
+  );
+  await run('ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "guardianUserId" TEXT');
+  await run('ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "parentalConsentAt" TIMESTAMP(3)');
+  await run('ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "parentalConsentName" TEXT');
+  await run(
+    'ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "parentalConsentRelationship" TEXT',
+  );
+  await run('ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "parentalConsentVersion" TEXT');
+  await runOptional(
+    'CREATE INDEX IF NOT EXISTS "User_guardianUserId_idx" ON "User"("guardianUserId")',
+  );
+  await runOptional(
+    'CREATE INDEX IF NOT EXISTS "User_memberType_idx" ON "User"("memberType")',
+  );
+  await runOptional('ALTER TABLE "User" DROP CONSTRAINT IF EXISTS "User_email_key"');
+  await runOptional('DROP INDEX IF EXISTS "User_email_key"');
+  await runOptional(
+    'CREATE UNIQUE INDEX IF NOT EXISTS "User_email_login_key" ON "User" (email) WHERE "guardianUserId" IS NULL',
+  );
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS "GuardianIdDocument" (
+      "id" TEXT NOT NULL,
+      "childUserId" TEXT NOT NULL,
+      "fileName" TEXT NOT NULL,
+      "mimeType" TEXT NOT NULL,
+      "data" BYTEA NOT NULL,
+      "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "status" TEXT NOT NULL DEFAULT 'pending',
+      "reviewedAt" TIMESTAMP(3),
+      "reviewedByAdminId" TEXT,
+      "reviewNote" TEXT,
+      CONSTRAINT "GuardianIdDocument_pkey" PRIMARY KEY ("id")
+    )
+  `);
+  await runOptional(
+    'CREATE INDEX IF NOT EXISTS "GuardianIdDocument_childUserId_idx" ON "GuardianIdDocument"("childUserId")',
+  );
+  await runOptional(
+    'CREATE INDEX IF NOT EXISTS "GuardianIdDocument_status_idx" ON "GuardianIdDocument"("status")',
+  );
+
+  await runOptional('DROP INDEX IF EXISTS "Booking_sessionId_email_active_key"');
+  await runOptional(`
+    CREATE UNIQUE INDEX IF NOT EXISTS "Booking_sessionId_userId_active_key"
+    ON "Booking" ("sessionId", "userId")
+    WHERE "status" IN ('confirmed', 'pending') AND "userId" IS NOT NULL
+  `);
+  await runOptional(`
+    CREATE UNIQUE INDEX IF NOT EXISTS "Booking_sessionId_guest_email_active_key"
+    ON "Booking" ("sessionId", lower("email"))
+    WHERE "status" IN ('confirmed', 'pending') AND "userId" IS NULL
+  `);
+
   console.log("Schema sync complete.");
 }
 

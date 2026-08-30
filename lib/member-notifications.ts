@@ -10,6 +10,7 @@ export async function notifyAdminOfNewMember(member: {
   phone?: string | null;
   signupMethod: "email" | "google";
   emailVerified: boolean;
+  memberType?: "adult" | "child";
 }) {
   try {
     await sendNewMemberRegisteredEmail(member);

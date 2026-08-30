@@ -14,6 +14,9 @@ Cancel at least 24 hours before the class start time to receive a refund as clas
 Health & safety
 Participants must complete any required health forms (including PAR-Q where asked) before attending. Please tell your instructor about injuries or medical conditions. Wild Hearts Collective may refuse participation if safety cannot be assured.
 
+Child members
+Anyone under 18 must be registered as a child member by a parent or legal guardian. The parent/guardian gives consent, uploads proof of their own identification, and is responsible for the child's membership, bookings, and payments. Switch to the child's profile before booking so classes and credits stay on that child's membership.
+
 Studio guidelines
 Please arrive 5–10 minutes before class. Wear appropriate clothing for the activity. Keep the studio clean and treat equipment with care.
 

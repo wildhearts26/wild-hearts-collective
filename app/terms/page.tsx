@@ -55,6 +55,25 @@ export default function TermsPage() {
         </ProseBlock>
       </ContentSection>
 
+      <ContentSection>
+        <SectionHeading title="Child members" />
+        <ProseBlock>
+          <p>
+            Members under 18 must be registered as child members by a parent or
+            legal guardian. The parent or guardian signs in with their own
+            email, gives consent, and uploads proof of identification. Child
+            members complete the same membership information, but they book and
+            pay separately — switch to the child&apos;s profile before booking so
+            classes, credits, and payments stay on their membership.
+          </p>
+          <p>
+            The studio may refuse or pause a child membership if consent or
+            identification cannot be verified, or if participation would not be
+            safe.
+          </p>
+        </ProseBlock>
+      </ContentSection>
+
       <ContentSection className="bg-pink-soft">
         <SectionHeading title="Health & safety" />
         <ProseBlock>

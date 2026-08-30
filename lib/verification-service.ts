@@ -65,8 +65,11 @@ export async function deliverVerificationCode(
 }
 
 export async function findUserForPasswordReset(email: string) {
-  return db.user.findUnique({
-    where: { email: email.trim().toLowerCase() },
+  return db.user.findFirst({
+    where: {
+      email: email.trim().toLowerCase(),
+      guardianUserId: null,
+    },
     select: {
       id: true,
       email: true,
@@ -78,9 +81,14 @@ export async function findUserForPasswordReset(email: string) {
 }
 
 export async function markEmailVerified(userId: string) {
+  const now = new Date();
   await db.user.update({
     where: { id: userId },
-    data: { emailVerifiedAt: new Date() },
+    data: { emailVerifiedAt: now },
+  });
+  await db.user.updateMany({
+    where: { guardianUserId: userId },
+    data: { emailVerifiedAt: now },
   });
 }
 

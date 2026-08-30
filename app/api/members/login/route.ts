@@ -5,7 +5,7 @@ import {
   setMemberSessionCookie,
   toPublicMember,
 } from "@/lib/member-auth";
-import { db } from "@/lib/db";
+import { findLoginUserByEmail } from "@/lib/household-service";
 import { verifyPassword } from "@/lib/password";
 
 type LoginBody = {
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const user = await db.user.findUnique({ where: { email } });
+  const user = await findLoginUserByEmail(email);
 
   if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
     if (user && !user.passwordHash) {
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Incorrect email or password." }, { status: 401 });
   }
 
-  const token = createMemberSessionToken(user.id);
+  const token = createMemberSessionToken(user.id, user.id);
   const cookieStore = await cookies();
   cookieStore.set(setMemberSessionCookie(token));
 

@@ -153,7 +153,10 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
                             >
                               {member.name}
                             </Link>
-                            <p className="mt-1 text-xs text-muted">{signupMethod}</p>
+                            <p className="mt-1 text-xs text-muted">
+                              {signupMethod}
+                              {member.memberType === "child" ? " · Child" : ""}
+                            </p>
                           </div>
                         </div>
                       </td>

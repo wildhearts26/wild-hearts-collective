@@ -8,6 +8,7 @@ import {
 import { MEMBERSHIP_PLAN, MEMBERSHIP_STATUS } from "@/lib/membership-config";
 import { deliverVerificationCode } from "@/lib/verification-service";
 import { notifyAdminOfNewMember } from "@/lib/member-notifications";
+import { findLoginUserByEmail } from "@/lib/household-service";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { VERIFICATION_CHANNEL, VERIFICATION_PURPOSE } from "@/lib/verification-config";
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const existing = await db.user.findUnique({ where: { email } });
+  const existing = await findLoginUserByEmail(email);
   if (existing) {
     return NextResponse.json(
       { error: "An account with this email already exists." },
@@ -109,7 +110,7 @@ export async function POST(request: Request) {
     emailVerified: false,
   });
 
-  const token = createMemberSessionToken(user.id);
+  const token = createMemberSessionToken(user.id, user.id);
   const cookieStore = await cookies();
   cookieStore.set(setMemberSessionCookie(token));
 
