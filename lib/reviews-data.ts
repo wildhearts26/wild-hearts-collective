@@ -11,45 +11,45 @@ export type PublicSiteReview = {
   source: "member" | "featured";
 };
 
-/** Featured quotes shown until member opt-in reviews are available. */
+/** Curated genuine reviews from past students (shown on /reviews). */
 export const featuredSiteReviews: PublicSiteReview[] = [
   {
     id: "featured-1",
-    displayName: "Emma",
+    displayName: "Sarah",
     rating: 5,
     comments:
-      "I was nervous about starting pole, but the instructors made me feel welcome from the first warm-up. Clear progressions, genuine encouragement, and a room full of people cheering each other on — I left smiling every week.",
-    classTitle: "Pole",
+      "Jacqui is an incredible instructor. She knows each of her students abilities and encourages you just enough to make you believe in yourself. She is an amazing lady and a formidable instructor. If you need support, guidance and giggles, Jacqui is the instructor for you.",
+    classTitle: null,
     submittedAtLabel: null,
     source: "featured",
   },
   {
     id: "featured-2",
-    displayName: "Jordan",
+    displayName: "Maisie",
     rating: 5,
     comments:
-      "Wild Hearts feels like a proper community, not just a fitness class. Aerial hoop has challenged me in the best way, and the teaching is careful, skilled, and never judgemental. Highly recommend for anyone curious about aerial.",
-    classTitle: "Aerial Hoop",
+      'I will always wish I had started pole dancing sooner. It has helped me in ways I never expected. I began with very little strength and low self-confidence, but since starting, I have felt so much healthier - without the repetitive, chore-like feeling I often associated with going to the gym. The confidence I have gained is incredible. I went from attending classes in a T-shirt and the longest shorts possible to confidently sharing full choreography videos without worrying whether my stomach looks a little "too out". Along the way, I have met so many wonderful, supportive, and empowering people, that i know i can count on for things outside classes. Pole dancing has changed not only how I feel physically, but also how I see and appreciate myself.',
+    classTitle: "Pole",
     submittedAtLabel: null,
     source: "featured",
   },
   {
     id: "featured-3",
-    displayName: "Priya",
+    displayName: "Morgan",
     rating: 5,
     comments:
-      "As a complete beginner I never felt left behind. The studio is inclusive, the space is beautiful, and the team genuinely care about safety and confidence. Booking online was easy and the whole experience felt professional and warm.",
+      "Jacqui is an incredibly supportive instructor, makes even the most complicated silks moves easy to understand, always brings the best energy.",
     classTitle: "Aerial Silks",
     submittedAtLabel: null,
     source: "featured",
   },
   {
     id: "featured-4",
-    displayName: "Sam",
+    displayName: "Louise",
     rating: 5,
     comments:
-      "We booked a party for a friend’s birthday and it was a highlight of the year. Organised, fun, and perfectly pitched for mixed abilities. The studio hire and party team made everything simple from enquiry to the day itself.",
-    classTitle: "Parties & events",
+      "I started my pole journey a while ago and reached a point where I just seemed to plateau. This was when I went to Rosie’s class and never looked back! This woman believed in me and her other students when we didn’t believe in ourselves. She knew our limits and she pushed us (safely ofc) to excel. Rosie’s classes are Rosie’s personality in a room- which is an absolute vibe! Unwavering support, an ungodly amount of cheering and just literal joy. She made me fall in love with the sport again and I’ve been waiting patiently for her return, that’s how amazing she is as a person and instructor! She’s our pole mama for a reason❤️ Love you Rosie!",
+    classTitle: "Pole",
     submittedAtLabel: null,
     source: "featured",
   },
@@ -72,32 +72,36 @@ export function formatReviewDisplayName(fullName: string) {
 }
 
 /**
- * Member feedback submitted with “share on website” opted in.
- * Falls back to featured quotes when none are available yet.
+ * Curated featured reviews first, then any member feedback submitted
+ * with “share on website” opted in.
  */
 export async function listPublicSiteReviews(limit = 24): Promise<PublicSiteReview[]> {
   const client = feedbackClient();
-  if (!client) return featuredSiteReviews;
+  if (!client) return featuredSiteReviews.slice(0, limit);
 
   try {
-    const rows = await client.findMany({
-      where: {
-        shareOnWebsite: true,
-        submittedAt: { not: null },
-        comments: { not: null },
-        rating: { gte: 1 },
-      },
-      orderBy: { submittedAt: "desc" },
-      take: limit,
-      select: {
-        id: true,
-        name: true,
-        rating: true,
-        comments: true,
-        classTitle: true,
-        submittedAt: true,
-      },
-    });
+    const take = Math.max(0, limit - featuredSiteReviews.length);
+    const rows =
+      take === 0
+        ? []
+        : await client.findMany({
+            where: {
+              shareOnWebsite: true,
+              submittedAt: { not: null },
+              comments: { not: null },
+              rating: { gte: 1 },
+            },
+            orderBy: { submittedAt: "desc" },
+            take,
+            select: {
+              id: true,
+              name: true,
+              rating: true,
+              comments: true,
+              classTitle: true,
+              submittedAt: true,
+            },
+          });
 
     const memberReviews: PublicSiteReview[] = [];
     for (const row of rows) {
@@ -116,10 +120,9 @@ export async function listPublicSiteReviews(limit = 24): Promise<PublicSiteRevie
       });
     }
 
-    if (memberReviews.length === 0) return featuredSiteReviews;
-    return memberReviews;
+    return [...featuredSiteReviews, ...memberReviews].slice(0, limit);
   } catch (error) {
     console.error("[reviews] failed to load public feedback:", error);
-    return featuredSiteReviews;
+    return featuredSiteReviews.slice(0, limit);
   }
 }

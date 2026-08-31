@@ -183,8 +183,8 @@ export default async function ReviewsPage() {
           title="What people say"
           subtitle={
             showingFeatured
-              ? "A selection of voices from our community. Member reviews appear here when students choose to share feedback on the website."
-              : "Reviews shared by students who chose to publish their feedback on our website."
+              ? "Genuine words from past students about our instructors and classes."
+              : "Curated voices from our community, plus reviews from students who chose to share feedback on the website."
           }
         />
         <ul className="mt-12 grid gap-6 md:grid-cols-2">
