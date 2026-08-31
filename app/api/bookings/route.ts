@@ -37,7 +37,12 @@ import {
   courseSeriesHasStarted,
   listCourseSeriesSessions,
 } from "@/lib/course-series";
-import { redeemVoucherForBooking } from "@/lib/voucher-service";
+import {
+  amountDueAfterVoucherPence,
+  redeemVoucherForBooking,
+  releaseVoucherFromBooking,
+  voucherDiscountPence,
+} from "@/lib/voucher-service";
 
 type BookingBody = {
   sessionId?: string;
@@ -369,6 +374,12 @@ export async function POST(request: Request) {
     balanceAfterLabel: string;
     appliedLabel: string;
   } | null = null;
+  let voucherApplied: {
+    voucherId: string;
+    discountPercent: number;
+    discountPence: number;
+    appliedLabel: string;
+  } | null = null;
 
   if (trimmedCode) {
     const treatAsGift =
@@ -425,8 +436,22 @@ export async function POST(request: Request) {
     } else if (userId) {
       try {
         const voucher = await redeemVoucherForBooking(userId, trimmedCode, booking.id);
+        const discountPence = voucherDiscountPence(
+          classPricePence,
+          voucher.discountPercent,
+        );
+        amountDuePence = amountDueAfterVoucherPence(
+          classPricePence,
+          voucher.discountPercent,
+        );
+        voucherApplied = {
+          voucherId: voucher.id,
+          discountPercent: voucher.discountPercent,
+          discountPence,
+          appliedLabel: `${voucher.discountPercent}% off (${formatMoneyFromPence(discountPence)})`,
+        };
 
-        if (voucher.discountPercent >= 100) {
+        if (amountDuePence <= 0) {
           const confirmed = await confirmBooking(booking.id, { amountPaid: 0 });
 
           return NextResponse.json({
@@ -438,9 +463,11 @@ export async function POST(request: Request) {
             classTitle: sessionPublicTitle(confirmed.session),
             startsAt: confirmed.session.startsAt.toISOString(),
             voucherApplied: true,
+            voucherAmountAppliedLabel: voucherApplied.appliedLabel,
           });
         }
       } catch (error) {
+        await releaseVoucherFromBooking(booking.id).catch(() => null);
         await db.booking.delete({ where: { id: booking.id } });
         const message = error instanceof Error ? error.message : "Invalid voucher code.";
         return NextResponse.json({ error: message }, { status: 400 });
@@ -459,7 +486,7 @@ export async function POST(request: Request) {
 
   if (!isStripeConfigured()) {
     const confirmed = await confirmBooking(booking.id, {
-      amountPaid: giftApplied ? amountDuePence : undefined,
+      amountPaid: giftApplied || voucherApplied ? amountDuePence : undefined,
     });
 
     return NextResponse.json({
@@ -473,6 +500,8 @@ export async function POST(request: Request) {
       paymentSkipped: true,
       giftCardApplied: Boolean(giftApplied),
       giftBalanceRemainingLabel: giftApplied?.balanceAfterLabel,
+      voucherApplied: Boolean(voucherApplied),
+      voucherAmountAppliedLabel: voucherApplied?.appliedLabel,
     });
   }
 
@@ -502,6 +531,9 @@ export async function POST(request: Request) {
           bookingId: booking.id,
           userId,
         });
+      }
+      if (voucherApplied) {
+        await releaseVoucherFromBooking(booking.id);
       }
       return NextResponse.json(
         { error: "Unable to start embedded checkout. Please try again." },
@@ -537,6 +569,8 @@ export async function POST(request: Request) {
       giftCardApplied: Boolean(giftApplied),
       giftAmountAppliedLabel: giftApplied?.appliedLabel,
       giftBalanceRemainingLabel: giftApplied?.balanceAfterLabel,
+      voucherApplied: Boolean(voucherApplied),
+      voucherAmountAppliedLabel: voucherApplied?.appliedLabel,
     });
   } catch (error) {
     if (giftApplied) {
@@ -544,6 +578,9 @@ export async function POST(request: Request) {
         bookingId: booking.id,
         userId,
       });
+    }
+    if (voucherApplied) {
+      await releaseVoucherFromBooking(booking.id).catch(() => null);
     }
     await db.booking.delete({ where: { id: booking.id } });
     const message = error instanceof Error ? error.message : "Unable to start checkout.";

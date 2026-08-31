@@ -68,6 +68,7 @@ type BookingResult = {
   paidWithCredit?: boolean;
   creditsCharged?: number;
   voucherApplied?: boolean;
+  voucherAmountAppliedLabel?: string;
   giftCardApplied?: boolean;
   giftAmountAppliedLabel?: string;
   giftBalanceRemainingLabel?: string;
@@ -85,6 +86,7 @@ type PendingPayment = {
   };
   giftAmountAppliedLabel?: string;
   giftBalanceRemainingLabel?: string;
+  voucherAmountAppliedLabel?: string;
 };
 
 type MemberProfile = {
@@ -451,6 +453,7 @@ export function BookingForm() {
           },
           giftAmountAppliedLabel: data.giftAmountAppliedLabel,
           giftBalanceRemainingLabel: data.giftBalanceRemainingLabel,
+          voucherAmountAppliedLabel: data.voucherAmountAppliedLabel,
         });
         return;
       }
@@ -496,7 +499,9 @@ export function BookingForm() {
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
               {pendingPayment.giftAmountAppliedLabel
                 ? `Your gift card covered ${pendingPayment.giftAmountAppliedLabel}. Complete the remaining payment below within 10 minutes to secure your place.`
-                : "Complete payment below within 10 minutes to secure your place. The lesson will be cancelled without notice if payment is not completed in time."}
+                : pendingPayment.voucherAmountAppliedLabel
+                  ? `Your reward voucher applied ${pendingPayment.voucherAmountAppliedLabel}. Complete the remaining payment below within 10 minutes to secure your place.`
+                  : "Complete payment below within 10 minutes to secure your place. The lesson will be cancelled without notice if payment is not completed in time."}
             </p>
           </div>
 
@@ -518,6 +523,14 @@ export function BookingForm() {
                   {pendingPayment.giftBalanceRemainingLabel
                     ? ` · ${pendingPayment.giftBalanceRemainingLabel} left on code`
                     : null}
+                </p>
+              )}
+              {pendingPayment.voucherAmountAppliedLabel && (
+                <p className="mt-2 text-sm text-muted">
+                  Reward voucher applied:{" "}
+                  <strong className="text-foreground">
+                    {pendingPayment.voucherAmountAppliedLabel}
+                  </strong>
                 </p>
               )}
               <p className="mt-2 text-sm text-muted">
@@ -597,7 +610,9 @@ export function BookingForm() {
         : "";
       statusMessage = `Your booking is confirmed — paid with your gift card${applied}.${remaining} A confirmation email has been sent to ${result.email}.`;
     } else if (result.voucherApplied) {
-      statusMessage = `Your booking is confirmed — your reward voucher covered this class. A confirmation email has been sent to ${result.email}.`;
+      statusMessage = result.voucherAmountAppliedLabel
+        ? `Your booking is confirmed — your reward voucher covered this class (${result.voucherAmountAppliedLabel}). A confirmation email has been sent to ${result.email}.`
+        : `Your booking is confirmed — your reward voucher covered this class. A confirmation email has been sent to ${result.email}.`;
     } else if (result.paymentSkipped || result.status === "confirmed") {
       statusMessage = `Your booking is confirmed. A confirmation email has been sent to ${result.email}.`;
     }

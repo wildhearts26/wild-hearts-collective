@@ -256,6 +256,20 @@ export async function recordAttendanceAndAwardMilestones(
   });
 }
 
+/** Discount amount in pence for a percentage reward voucher. */
+export function voucherDiscountPence(pricePence: number, discountPercent: number) {
+  const clamped = Math.min(100, Math.max(0, Math.trunc(discountPercent)));
+  if (pricePence <= 0 || clamped <= 0) return 0;
+  return Math.min(pricePence, Math.round((pricePence * clamped) / 100));
+}
+
+export function amountDueAfterVoucherPence(
+  pricePence: number,
+  discountPercent: number,
+) {
+  return Math.max(0, pricePence - voucherDiscountPence(pricePence, discountPercent));
+}
+
 export async function redeemVoucherForBooking(
   userId: string,
   code: string,
@@ -291,8 +305,51 @@ export async function redeemVoucherForBooking(
       where: { id: bookingId },
       data: {
         voucherId: voucher.id,
-        amountPaid: 0,
       },
+    });
+
+    return voucher;
+  });
+}
+
+/**
+ * Undo a reward-voucher hold when checkout fails or unpaid payment expires,
+ * so the member can use the code again.
+ */
+export async function releaseVoucherFromBooking(bookingId: string) {
+  return db.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({
+      where: { id: bookingId },
+      select: { id: true, voucherId: true, status: true },
+    });
+
+    if (!booking?.voucherId) {
+      return null;
+    }
+
+    const voucher = await tx.voucher.findUnique({
+      where: { id: booking.voucherId },
+    });
+
+    if (!voucher || voucher.bookingId !== bookingId) {
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { voucherId: null },
+      });
+      return null;
+    }
+
+    await tx.voucher.update({
+      where: { id: voucher.id },
+      data: {
+        usedAt: null,
+        bookingId: null,
+      },
+    });
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { voucherId: null },
     });
 
     return voucher;

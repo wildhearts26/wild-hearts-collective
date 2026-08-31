@@ -18,6 +18,7 @@ import {
 } from "@/lib/email";
 import { restoreGiftCardBalance } from "@/lib/gift-card-service";
 import { sessionPublicTitle } from "@/lib/session-display";
+import { releaseVoucherFromBooking } from "@/lib/voucher-service";
 
 export function paymentHoldCutoff(now = new Date()) {
   return new Date(now.getTime() - PAYMENT_HOLD_MS);
@@ -69,6 +70,14 @@ export async function cancelBookingForPaymentExpiry(bookingId: string) {
       });
     } catch (error) {
       console.error("[gift-card:restore-on-expiry]", bookingId, error);
+    }
+  }
+
+  if (booking.voucherId) {
+    try {
+      await releaseVoucherFromBooking(booking.id);
+    } catch (error) {
+      console.error("[voucher:release-on-expiry]", bookingId, error);
     }
   }
 
@@ -279,6 +288,7 @@ export async function confirmBooking(
     include: {
       session: { include: { class: true } },
       giftCard: { select: { code: true } },
+      voucher: { select: { code: true, discountPercent: true } },
     },
   });
 
@@ -296,7 +306,12 @@ export async function confirmBooking(
         booking.giftCard?.code ? ` (${booking.giftCard.code})` : ""
       }`;
     } else if (booking.voucherId) {
-      paymentSummary = "Complimentary (reward voucher)";
+      const percent = booking.voucher?.discountPercent ?? 100;
+      if (percent >= 100 || !options?.amountPaid) {
+        paymentSummary = "Complimentary (reward voucher)";
+      } else {
+        paymentSummary = `${percent}% reward voucher + ${formatMoneyFromPence(options.amountPaid)} card`;
+      }
     }
   }
 
