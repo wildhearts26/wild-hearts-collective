@@ -32,7 +32,7 @@ export function pageSeo({
     : `${title} | Wild Hearts Collective`;
 
   return {
-    title,
+    title: path === "/" ? { absolute: title } : title,
     description,
     alternates: { canonical: path },
     openGraph: {

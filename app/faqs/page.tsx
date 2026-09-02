@@ -21,7 +21,9 @@ export default function FaqsPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdScript(faqPageJsonLd(faqs)) }}
+        dangerouslySetInnerHTML={{
+          __html: jsonLdScript(faqPageJsonLd(faqs, { pagePath: "/faqs" })),
+        }}
       />
       <PageHero
         title="FAQs"

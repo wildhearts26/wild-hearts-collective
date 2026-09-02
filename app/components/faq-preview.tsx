@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { faqs } from "@/lib/site-data";
-
-const PREVIEW_COUNT = 4;
+import { homepageFaqs } from "@/lib/geo";
 
 export function FaqPreview() {
-  const previewFaqs = faqs.slice(0, PREVIEW_COUNT);
+  const previewFaqs = homepageFaqs();
 
   return (
     <section className="bg-background py-16 lg:py-20">

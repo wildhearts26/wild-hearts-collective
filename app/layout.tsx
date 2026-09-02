@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Raleway, Satisfy } from "next/font/google";
 import {
   SITE_ORIGIN,
+  faqPageJsonLd,
+  homepageFaqs,
   jsonLdScript,
   organizationJsonLd,
   websiteJsonLd,
@@ -102,6 +104,7 @@ export default function RootLayout({
     organizationJsonLd(),
     getLocalBusinessJsonLd(),
     websiteJsonLd(),
+    faqPageJsonLd(homepageFaqs(), { pagePath: "/" }),
   ];
 
   return (

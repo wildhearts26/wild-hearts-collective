@@ -13,11 +13,26 @@ export const PREFERRED_CITATION =
 
 export type FaqItem = { question: string; answer: string };
 
-export function faqPageJsonLd(items: readonly FaqItem[] = faqs) {
+export const HOMEPAGE_FAQ_COUNT = 4;
+
+export function homepageFaqs() {
+  return faqs.slice(0, HOMEPAGE_FAQ_COUNT);
+}
+
+export function faqPageJsonLd(
+  items: readonly FaqItem[] = faqs,
+  options?: { pagePath?: string },
+) {
+  const pagePath = options?.pagePath ?? "/faqs";
+  const pageUrl = pagePath === "/" ? SITE_ORIGIN : `${SITE_ORIGIN}${pagePath}`;
+  const faqId = pagePath === "/" ? `${SITE_ORIGIN}/#faq` : `${pageUrl}#faq`;
+
   return {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "@id": `${SITE_ORIGIN}/faqs#faq`,
+    "@id": faqId,
+    url: pageUrl,
+    inLanguage: "en-GB",
     mainEntity: items.map(({ question, answer }) => ({
       "@type": "Question",
       name: question,
