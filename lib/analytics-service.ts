@@ -75,7 +75,10 @@ export async function getAdminAnalytics() {
 
   let totalCapacity = 0;
   let totalConfirmed = 0;
-  const classPopularity: Record<string, { title: string; bookings: number; capacity: number }> = {};
+  const classPopularity: Record<
+    string,
+    { title: string; bookings: number; capacity: number; sessions: number }
+  > = {};
   const hourBuckets: Record<string, number> = {};
 
   for (const session of sessions) {
@@ -89,10 +92,12 @@ export async function getAdminAnalytics() {
         title: session.class.title,
         bookings: 0,
         capacity: 0,
+        sessions: 0,
       };
     }
     classPopularity[slug].bookings += confirmed;
     classPopularity[slug].capacity += session.capacity;
+    classPopularity[slug].sessions += 1;
 
     const hour = new Intl.DateTimeFormat("en-GB", {
       hour: "2-digit",
@@ -110,6 +115,7 @@ export async function getAdminAnalytics() {
       slug,
       title: data.title,
       bookings: data.bookings,
+      sessions: data.sessions,
       capacity: data.capacity,
       occupancyPercent:
         data.capacity > 0 ? Math.round((data.bookings / data.capacity) * 1000) / 10 : 0,

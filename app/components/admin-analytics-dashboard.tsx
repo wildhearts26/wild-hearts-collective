@@ -32,6 +32,7 @@ type AnalyticsData = {
     slug: string;
     title: string;
     bookings: number;
+    sessions: number;
     occupancyPercent: number;
   }>;
   peakHours: Array<{ hour: string; bookings: number }>;
@@ -86,7 +87,7 @@ export function AdminAnalyticsDashboard() {
   }
 
   const stats = [
-    { label: "Occupancy", value: `${data.summary.occupancyPercent}%` },
+    { label: "Overall fill rate (30d)", value: `${data.summary.occupancyPercent}%` },
     { label: "Confirmed bookings", value: String(data.summary.totalBookings) },
     { label: "Active students (30d)", value: String(data.summary.activeStudents) },
     { label: "Retention rate", value: `${data.summary.retentionRate}%` },
@@ -190,14 +191,20 @@ export function AdminAnalyticsDashboard() {
 
       <section>
         <h2 className="font-display text-3xl text-plum">Popular classes</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted">
+          Totals for the last {data.periodDays} days. Bookings and fill rate combine every
+          scheduled session of that class type — not a single session. For example, one full
+          class of 12 plus six empty sessions shows 12 bookings and about 14% fill rate.
+        </p>
         <div className="mt-4 overflow-hidden rounded-sm border border-plum/10 bg-surface">
           <div className="min-w-0">
             <table className="w-full table-fixed text-left text-sm">
               <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
                 <tr>
-                  <th className="w-[55%] px-3 py-3">Class</th>
-                  <th className="w-[22%] px-3 py-3">Bookings</th>
-                  <th className="w-[23%] px-3 py-3">Occupancy</th>
+                  <th className="w-[40%] px-3 py-3">Class</th>
+                  <th className="w-[18%] px-3 py-3">Sessions</th>
+                  <th className="w-[20%] px-3 py-3">Bookings</th>
+                  <th className="w-[22%] px-3 py-3">Fill rate</th>
                 </tr>
               </thead>
             <tbody>
@@ -208,6 +215,7 @@ export function AdminAnalyticsDashboard() {
                       {item.title}
                     </p>
                   </td>
+                  <td className="px-3 py-3 text-muted">{item.sessions}</td>
                   <td className="px-3 py-3 text-muted">{item.bookings}</td>
                   <td className="px-3 py-3 text-muted">{item.occupancyPercent}%</td>
                 </tr>
