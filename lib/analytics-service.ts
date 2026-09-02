@@ -20,7 +20,11 @@ export async function getAdminAnalytics() {
     engagementSent,
   ] = await Promise.all([
     db.session.findMany({
-      where: { startsAt: { gte: thirtyDaysAgo } },
+      where: {
+        startsAt: { gte: thirtyDaysAgo },
+        // Cancelled / test leftovers must not inflate capacity or fill rate.
+        status: { not: "cancelled" },
+      },
       include: {
         class: { select: { slug: true, title: true } },
         bookings: {
