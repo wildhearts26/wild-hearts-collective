@@ -1,5 +1,6 @@
-import { BOOKING_STATUS } from "@/lib/booking-config";
 import { ATTENDANCE_STATUS } from "@/lib/booking-advanced-config";
+import { BOOKING_STATUS, formatUkDateTimeShort } from "@/lib/booking-config";
+import { formatCredits } from "@/lib/credit-units";
 import { db } from "@/lib/db";
 
 function monthKey(date: Date) {
@@ -15,7 +16,7 @@ export async function getAdminAnalytics() {
     sessions,
     bookings,
     users,
-    classPacksSold,
+    classPackPurchases,
     engagementSent,
   ] = await Promise.all([
     db.session.findMany({
@@ -51,8 +52,21 @@ export async function getAdminAnalytics() {
         totalClassesAttended: true,
       },
     }),
-    db.classPackPurchase.count({
-      where: { createdAt: { gte: thirtyDaysAgo }, status: { not: "expired" } },
+    db.classPackPurchase.findMany({
+      where: {
+        createdAt: { gte: thirtyDaysAgo },
+        status: { not: "pending" },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        createdAt: true,
+        creditsGranted: true,
+        creditsRemaining: true,
+        status: true,
+        user: { select: { id: true, name: true, email: true } },
+        pack: { select: { name: true } },
+      },
     }),
     db.engagementLog.count({
       where: { status: "sent", createdAt: { gte: thirtyDaysAgo } },
@@ -140,7 +154,7 @@ export async function getAdminAnalytics() {
       totalBookings: bookings.filter((b) => b.status === BOOKING_STATUS.confirmed).length,
       activeStudents,
       retentionRate,
-      classPacksSold,
+      classPacksSold: classPackPurchases.length,
       engagementEmailsSent: engagementSent,
       noShowsTracked: noShows,
     },
@@ -156,6 +170,21 @@ export async function getAdminAnalytics() {
       }),
       noShow: noShows,
     },
+    classPackPurchases: classPackPurchases.map((purchase) => ({
+      id: purchase.id,
+      buyerName: purchase.user.name,
+      buyerEmail: purchase.user.email,
+      buyerId: purchase.user.id,
+      packName: purchase.pack.name,
+      purchasedAt: purchase.createdAt.toISOString(),
+      purchasedLabel: formatUkDateTimeShort(purchase.createdAt),
+      creditsGranted: purchase.creditsGranted,
+      creditsRemaining: purchase.creditsRemaining,
+      creditsRemainingLabel: `${formatCredits(purchase.creditsRemaining)} of ${formatCredits(purchase.creditsGranted)} left`,
+      status: purchase.status,
+    })),
     periodDays: 30,
   };
 }
+
+export type AdminAnalytics = Awaited<ReturnType<typeof getAdminAnalytics>>;
