@@ -49,7 +49,8 @@ function fieldLabel(field: string) {
   return FIELD_LABELS[field] ?? field;
 }
 
-function describeCreditChange(from: unknown, to: unknown) {
+/** Plain-English credit adjustment for admin activity. */
+export function describeCreditChange(from: unknown, to: unknown) {
   const before = Number(from ?? 0);
   const after = Number(to ?? 0);
   if (!Number.isFinite(before) || !Number.isFinite(after)) {
@@ -57,16 +58,16 @@ function describeCreditChange(from: unknown, to: unknown) {
   }
   const delta = Math.round((after - before) * 100) / 100;
   if (delta > 0) {
-    return `added ${formatCredits(delta)} credit${delta === 1 ? "" : "s"} (${formatCredits(before)} → ${formatCredits(after)})`;
+    return `gave ${formatCredits(delta)} free class credit${delta === 1 ? "" : "s"} (${formatCredits(before)} → ${formatCredits(after)})`;
   }
   if (delta < 0) {
     const removed = Math.abs(delta);
-    return `removed ${formatCredits(removed)} credit${removed === 1 ? "" : "s"} (${formatCredits(before)} → ${formatCredits(after)})`;
+    return `removed ${formatCredits(removed)} class credit${removed === 1 ? "" : "s"} (${formatCredits(before)} → ${formatCredits(after)})`;
   }
   return `set class credits to ${formatCredits(after)}`;
 }
 
-function describeMemberChanges(changes: AdminAuditChange[]) {
+export function describeMemberChanges(changes: AdminAuditChange[]) {
   if (changes.length === 0) return "updated member details";
 
   const credit = changes.find((change) => change.field === "creditsRemaining");
@@ -76,19 +77,20 @@ function describeMemberChanges(changes: AdminAuditChange[]) {
   if (credit) {
     parts.push(describeCreditChange(credit.from, credit.to));
   }
-  for (const change of others.slice(0, 4)) {
+  for (const change of others.slice(0, 3)) {
     parts.push(
-      `changed ${fieldLabel(change.field)} from “${displayValue(change.from)}” to “${displayValue(change.to)}”`,
+      `changed ${fieldLabel(change.field)} (${displayValue(change.from)} → ${displayValue(change.to)})`,
     );
   }
-  if (others.length > 4) {
-    parts.push(`and ${others.length - 4} other field${others.length - 4 === 1 ? "" : "s"}`);
+  if (others.length > 3) {
+    parts.push(`and ${others.length - 3} other field${others.length - 3 === 1 ? "" : "s"}`);
   }
   return parts.join("; ");
 }
 
 const ACTION_FALLBACKS: Record<string, string> = {
   "member.updated": "updated member details",
+  "member.credits_adjusted": "adjusted class credits",
   "member.id_approved": "approved identification",
   "member.id_rejected": "rejected identification",
   "membership.paused": "paused membership",
@@ -98,6 +100,7 @@ const ACTION_FALLBACKS: Record<string, string> = {
   booking_removed: "removed a booking",
   booking_deleted: "deleted a booking",
   booking_force_added: "force-booked a member onto a class",
+  booking_force_created: "force-booked a member onto a class",
   session_created: "created a class session",
   session_updated: "updated a class session",
   session_cancelled: "cancelled a class session",
@@ -109,29 +112,55 @@ export function formatAdminAuditSummary(entry: {
   details?: string | null;
   targetUser?: { name: string } | null;
 }) {
-  const actor = entry.adminLabel?.trim() || "Admin";
+  const actor = entry.adminLabel?.trim() || "An admin";
   const target = entry.targetUser?.name?.trim();
   const details = parseDetails(entry.details);
 
+  // Prefer the human summary saved when the action happened.
+  if (typeof details?.summary === "string" && details.summary.trim()) {
+    const summary = details.summary.trim();
+    if (target) {
+      if (/^(gave|added|removed|set)\b/i.test(summary)) {
+        const connector = /^removed\b/i.test(summary) ? "from" : "to";
+        // "gave X free credits (0 → 2)" already complete — attach member name
+        if (/\b(to|from)\s+\S+/i.test(summary)) {
+          return `${actor} ${summary}`;
+        }
+        return `${actor} ${summary} ${connector} ${target}`;
+      }
+      return `${actor} ${summary} for ${target}`;
+    }
+    return `${actor} ${summary}`;
+  }
+
   let verb = ACTION_FALLBACKS[entry.action] ?? entry.action.replace(/[._]/g, " ");
 
-  if (entry.action === "member.updated" && details) {
+  if (
+    (entry.action === "member.updated" || entry.action === "member.credits_adjusted") &&
+    details
+  ) {
     const changes = Array.isArray(details.changes)
       ? (details.changes as AdminAuditChange[])
       : [];
     if (changes.length > 0) {
       verb = describeMemberChanges(changes);
     } else if (Array.isArray(details.fields) && details.fields.length > 0) {
-      const fields = (details.fields as string[]).map(fieldLabel);
-      verb = `updated ${fields.slice(0, 5).join(", ")}${fields.length > 5 ? `, and ${fields.length - 5} more` : ""}`;
+      const fields = details.fields as string[];
+      if (fields.includes("creditsRemaining")) {
+        verb =
+          "updated this member including class credits (exact amount was not recorded for this older change)";
+      } else {
+        const labels = fields.map(fieldLabel);
+        verb = `updated ${labels.slice(0, 4).join(", ")}${labels.length > 4 ? `, and ${labels.length - 4} more` : ""}`;
+      }
     }
   }
 
   if (target) {
-    if (entry.action === "member.updated" && verb.startsWith("added ")) {
+    if (/^(gave|added)\b/i.test(verb)) {
       return `${actor} ${verb} to ${target}`;
     }
-    if (entry.action === "member.updated" && verb.startsWith("removed ")) {
+    if (/^removed\b/i.test(verb)) {
       return `${actor} ${verb} from ${target}`;
     }
     return `${actor} ${verb} for ${target}`;

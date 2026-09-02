@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 
 export {
   buildMemberAuditChanges,
+  describeCreditChange,
+  describeMemberChanges,
   formatAdminAuditSummary,
   type AdminAuditChange,
 } from "@/lib/admin-audit-format";
@@ -11,15 +13,15 @@ export async function logAdminAction(input: {
   action: string;
   targetUserId?: string;
   details?: Record<string, unknown>;
-  /** Override when session is unavailable (e.g. background jobs). */
+  /** Prefer passing the signed-in admin name from the route/handler. */
   adminLabel?: string;
 }) {
-  const session = await getAdminSession().catch(() => null);
+  const session = input.adminLabel ? null : await getAdminSession().catch(() => null);
   const adminLabel =
     input.adminLabel?.trim() ||
     session?.name?.trim() ||
     session?.email?.trim() ||
-    "admin";
+    "An admin";
 
   await db.adminAuditLog.create({
     data: {

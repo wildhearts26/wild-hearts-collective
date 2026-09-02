@@ -219,8 +219,9 @@ export default async function AdminDashboardPage({
 
       <AdminCollapsibleSection
         title="Recent admin activity"
-        defaultOpen
+        defaultOpen={false}
         empty={stats.recentAudit.length === 0}
+        summary="Hidden by default. Show to see who changed credits, members, bookings, and sessions."
       >
         {stats.recentAudit.length === 0 ? (
           <p className="mt-4 text-sm text-muted">No admin actions logged yet.</p>

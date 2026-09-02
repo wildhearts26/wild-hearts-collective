@@ -109,7 +109,15 @@ export async function PATCH(request: Request, context: RouteContext) {
   await logAdminAction({
     action: status === ID_DOCUMENT_STATUS.approved ? "member.id_approved" : "member.id_rejected",
     targetUserId: id,
-    details: { documentId: updated.id, status },
+    adminLabel: admin.session.name,
+    details: {
+      summary:
+        status === ID_DOCUMENT_STATUS.approved
+          ? "approved identification"
+          : "rejected identification",
+      documentId: updated.id,
+      status,
+    },
   });
 
   const parentName = child.guardian?.name ?? "Parent/guardian";

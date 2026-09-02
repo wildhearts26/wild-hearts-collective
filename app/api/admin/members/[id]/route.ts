@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   buildMemberAuditChanges,
+  describeMemberChanges,
   logAdminAction,
 } from "@/lib/admin-audit";
 import { requireAdmin } from "@/lib/admin-api";
@@ -230,9 +231,11 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
 
   await logAdminAction({
-    action: "member.updated",
+    action: creditChange ? "member.credits_adjusted" : "member.updated",
     targetUserId: id,
+    adminLabel: admin.session.name,
     details: {
+      summary: describeMemberChanges(changes),
       changes: changes.map((change) => ({
         field: change.field,
         from: change.from,
