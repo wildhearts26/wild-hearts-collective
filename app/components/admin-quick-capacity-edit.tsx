@@ -2,11 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getMaxCapacityForClassSlug } from "@/lib/admin-studio-config";
+import { ADMIN_SESSION_CAPACITY_MAX } from "@/lib/admin-studio-config";
 
 export function AdminQuickCapacityEdit({
   sessionId,
-  classSlug,
   capacity,
 }: {
   sessionId: string;
@@ -14,14 +13,13 @@ export function AdminQuickCapacityEdit({
   capacity: number;
 }) {
   const router = useRouter();
-  const max = getMaxCapacityForClassSlug(classSlug);
   const [value, setValue] = useState(String(capacity));
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
   async function saveCapacity() {
     const next = Number(value);
-    if (!Number.isFinite(next) || next < 1 || next > max) return;
+    if (!Number.isFinite(next) || next < 1 || next > ADMIN_SESSION_CAPACITY_MAX) return;
 
     setLoading(true);
     setSaved(false);
@@ -50,7 +48,7 @@ export function AdminQuickCapacityEdit({
         <input
           type="number"
           min={1}
-          max={max}
+          max={ADMIN_SESSION_CAPACITY_MAX}
           value={value}
           onChange={(event) => {
             setSaved(false);
@@ -68,7 +66,6 @@ export function AdminQuickCapacityEdit({
         {loading ? "Saving…" : "Save slots"}
       </button>
       {saved && <span className="text-xs text-emerald-700">Updated</span>}
-      <span className="text-[11px] text-muted">(equipment max {max})</span>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminSavedDialog } from "@/app/components/admin-saved-dialog";
 import {
+  ADMIN_SESSION_CAPACITY_MAX,
   CLASS_TYPE_OPTIONS,
   getMaxCapacityForClassSlug,
 } from "@/lib/admin-studio-config";
@@ -104,9 +105,10 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
   }, [initial?.tutorId]);
 
   useEffect(() => {
-    const max = getMaxCapacityForClassSlug(classSlug);
-    setCapacity((current) => Math.min(current, max));
-  }, [classSlug]);
+    if (mode === "create") {
+      setCapacity(getMaxCapacityForClassSlug(classSlug));
+    }
+  }, [classSlug, mode]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -238,16 +240,20 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
           </p>
         </Field>
 
-        <Field label={`Capacity (max ${maxCapacity})`}>
+        <Field label="Max slots">
           <input
             type="number"
             min={1}
-            max={maxCapacity}
+            max={ADMIN_SESSION_CAPACITY_MAX}
             required
             value={capacity}
             onChange={(event) => setCapacity(Number(event.target.value))}
             className="w-full rounded-sm border border-plum/15 px-3 py-2 text-sm"
           />
+          <p className="mt-1 text-xs text-muted">
+            Set how many students can book this session. Default for new{" "}
+            {selectedClass?.title ?? "classes"} is {maxCapacity}.
+          </p>
         </Field>
 
         <Field label="Tutor">
@@ -409,15 +415,15 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
 
       {classes.length > 0 && mode === "create" && (
         <p className="text-xs text-muted">
-          Equipment limit for this class type: {maxCapacity} students maximum.
           {classSlug === "beginner-courses" ? (
             <>
-              {" "}
               Scheduling a <strong>4-week course</strong> creates four weekly sessions
               automatically (same day/time for four weeks). Public booking closes once
               week 1 starts; all four weeks stay on the admin schedule.
             </>
-          ) : null}
+          ) : (
+            <>You can adjust max slots per session on the schedule at any time.</>
+          )}
         </p>
       )}
 

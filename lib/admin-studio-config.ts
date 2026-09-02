@@ -100,9 +100,16 @@ export function getMaxCapacityForClassSlug(slug: string) {
   return getClassTypeOption(slug)?.maxCapacity ?? 12;
 }
 
-export function clampCapacity(slug: string, capacity: number) {
-  const max = getMaxCapacityForClassSlug(slug);
-  return Math.min(Math.max(1, Math.round(capacity)), max);
+/** Upper bound to catch typos — admins choose the real limit per session. */
+export const ADMIN_SESSION_CAPACITY_MAX = 999;
+
+export function normalizeSessionCapacity(capacity: number) {
+  return Math.min(Math.max(1, Math.round(capacity)), ADMIN_SESSION_CAPACITY_MAX);
+}
+
+/** @deprecated Use normalizeSessionCapacity — class slug no longer caps session size. */
+export function clampCapacity(_slug: string, capacity: number) {
+  return normalizeSessionCapacity(capacity);
 }
 
 export function computeEndsAt(startsAt: Date, durationMinutes: number) {

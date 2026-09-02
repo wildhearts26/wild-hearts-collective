@@ -27,8 +27,8 @@ export default async function AdminNewSessionPage() {
           <div className="mb-5 h-px w-12 bg-pink" />
           <h1 className="font-display text-4xl text-plum sm:text-5xl">Schedule class</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            Add a new session to the studio timetable. Capacity is capped by equipment limits
-            for each class type.
+            Add a new session to the studio timetable. You can set max slots per session —
+            adjust anytime from the schedule board.
           </p>
           <AdminNav active="schedule" permissions={session.permissions} />
         </div>
