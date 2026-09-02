@@ -24,20 +24,20 @@ export function MembershipSubscribeButton() {
   if (!signedIn) {
     return (
       <Link
-        href="/register?plan=monthly"
+        href="/register"
         className="block w-full rounded-sm bg-sage px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
       >
-        Subscribe monthly
+        Create free account
       </Link>
     );
   }
 
   return (
     <Link
-      href="/account/profile#billing"
+      href="/account/credits"
       className="block w-full rounded-sm bg-sage px-4 py-3 text-center text-sm font-semibold uppercase tracking-wider text-white transition hover:bg-sage-hover"
     >
-      Subscribe monthly
+      Buy class passes
     </Link>
   );
 }

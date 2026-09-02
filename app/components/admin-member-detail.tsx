@@ -14,7 +14,6 @@ import {
 import {
   MEMBERSHIP_PLAN,
   MEMBERSHIP_STATUS,
-  membershipPlanLabel,
   membershipStatusLabel,
   membershipStatusTone,
 } from "@/lib/membership-config";
@@ -108,7 +107,6 @@ export function AdminMemberDetail({
     allergiesSafetyAlerts: member.healthSafety.allergiesSafetyAlerts ?? "",
     disciplineSkills: { ...member.disciplineSkills },
     internalNotes: member.internalNotes ?? "",
-    membershipPlan: member.membership.plan,
     membershipStatus: member.membership.status,
     creditsRemaining: member.membership.creditsRemaining,
     accountStatus: member.membership.accountStatus,
@@ -271,22 +269,18 @@ export function AdminMemberDetail({
           </div>
         </div>
 
-        <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+        <dl className="mt-6 grid gap-4 sm:grid-cols-3 text-sm">
           <div>
             <dt className="text-muted">Credits</dt>
             <dd className="font-semibold text-plum">{member.membership.creditsRemaining}</dd>
           </div>
           <div>
-            <dt className="text-muted">Plan</dt>
-            <dd className="font-semibold text-plum">{membershipPlanLabel(member.membership.plan)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Started</dt>
+            <dt className="text-muted">Member since</dt>
             <dd className="font-semibold text-plum">{formatDate(member.membership.startedAt)}</dd>
           </div>
           <div>
-            <dt className="text-muted">Renews</dt>
-            <dd className="font-semibold text-plum">{formatDate(member.membership.renewsAt)}</dd>
+            <dt className="text-muted">Bookings</dt>
+            <dd className="font-semibold text-plum">{member.bookingCount}</dd>
           </div>
         </dl>
       </section>
@@ -500,26 +494,10 @@ export function AdminMemberDetail({
           </p>
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-plum">Membership plan</label>
-              <p className="mt-1 text-xs text-muted">
-                Studio Member is the standard free account used for booking. Monthly Membership
-                is a legacy paid plan and is no longer offered to new members.
-              </p>
-              <select
-                className={`${inputClass} mt-2`}
-                value={form.membershipPlan}
-                onChange={(e) => setForm({ ...form, membershipPlan: e.target.value })}
-              >
-                <option value={MEMBERSHIP_PLAN.account}>Studio Member</option>
-                <option value={MEMBERSHIP_PLAN.monthly}>Monthly Membership</option>
-              </select>
-            </div>
-            <div>
               <label className="block text-sm font-semibold text-plum">Membership status</label>
               <p className="mt-1 text-xs text-muted">
-                Lifecycle of the membership record: Active can book as normal; Paused temporarily
-                holds a paid membership; Cancelled/Expired/Inactive mark it as ended or inactive.
-                Prefer the Membership actions below for pause/cancel when possible.
+                All members are on the free studio membership. Active can book as normal;
+                paused, cancelled, or inactive marks the account as on hold or ended.
               </p>
               <select
                 className={`${inputClass} mt-2`}
@@ -597,10 +575,12 @@ export function AdminMemberDetail({
         </div>
       </form>
 
+      {member.membership.plan === MEMBERSHIP_PLAN.monthly && (
       <section className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">
-        <h3 className="font-display text-2xl text-plum">Membership actions</h3>
+        <h3 className="font-display text-2xl text-plum">Legacy subscription actions</h3>
         <p className="mt-2 text-sm text-muted">
-          Destructive actions are logged with timestamp. Stripe subscriptions sync when configured.
+          This member is on an old monthly subscription. New members use the free studio
+          membership and class passes only.
         </p>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="space-y-3 rounded-sm border border-plum/10 p-4">
@@ -633,6 +613,7 @@ export function AdminMemberDetail({
           </div>
         </div>
       </section>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-2">
         <section className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">

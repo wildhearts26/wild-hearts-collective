@@ -22,14 +22,13 @@ export async function getAdminDashboardStats() {
   const todayEnd = endOfDay(now);
   const weekAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
   const monthAgo = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 30);
-  const renewalsUntil = new Date(now.getTime() + 1000 * 60 * 60 * 24 * 30);
 
   const [
     members,
     newToday,
     newWeek,
     newMonth,
-    upcomingRenewals,
+    membersWithCredits,
     pendingBookings,
     todaysSessions,
     safetyAlerts,
@@ -43,18 +42,14 @@ export async function getAdminDashboardStats() {
     db.user.count({ where: { createdAt: { gte: weekAgo } } }),
     db.user.count({ where: { createdAt: { gte: monthAgo } } }),
     db.user.findMany({
-      where: {
-        membershipRenewsAt: { gte: now, lte: renewalsUntil },
-        membershipStatus: MEMBERSHIP_STATUS.active,
-      },
-      orderBy: { membershipRenewsAt: "asc" },
+      where: { creditsRemaining: { gt: 0 } },
+      orderBy: { creditsRemaining: "desc" },
       take: 8,
       select: {
         id: true,
         name: true,
         email: true,
-        membershipRenewsAt: true,
-        membershipPlan: true,
+        creditsRemaining: true,
       },
     }),
     db.booking.count({ where: { status: "pending" } }),
@@ -126,7 +121,7 @@ export async function getAdminDashboardStats() {
   return {
     statusCounts,
     signUps: { today: newToday, week: newWeek, month: newMonth },
-    upcomingRenewals,
+    membersWithCredits,
     pendingBookings,
     todaysSessions,
     safetyAlerts,

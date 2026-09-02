@@ -165,7 +165,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     data.experienceLevel = body.experienceLevel || null;
   }
   if (body.internalNotes !== undefined) data.internalNotes = body.internalNotes?.trim() || null;
-  if (body.membershipPlan !== undefined) data.membershipPlan = body.membershipPlan;
+  if (body.membershipPlan !== undefined && body.membershipPlan !== "account") {
+    return NextResponse.json(
+      { error: "Only the free studio membership is offered. Monthly membership is not available." },
+      { status: 400 },
+    );
+  }
   if (body.membershipStatus !== undefined) data.membershipStatus = body.membershipStatus;
   if (body.creditsRemaining !== undefined) data.creditsRemaining = body.creditsRemaining;
   if (body.accountStatus !== undefined) data.accountStatus = body.accountStatus;

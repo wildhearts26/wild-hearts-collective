@@ -8,7 +8,6 @@ import { AdminNav } from "@/app/components/admin-nav";
 import { requireAdminPage } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import {
-  membershipPlanLabel,
   membershipStatusLabel,
   membershipStatusTone,
   MEMBERSHIP_STATUS,
@@ -108,11 +107,10 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
                   <th className="w-[11%] px-3 py-3 font-semibold">Registered</th>
                   <th className="w-[18%] px-3 py-3 font-semibold">Name</th>
                   <th className="w-[18%] px-3 py-3 font-semibold">Email</th>
-                  <th className="w-[10%] px-3 py-3 font-semibold">Status</th>
-                  <th className="w-[10%] px-3 py-3 font-semibold">Plan</th>
-                  <th className="w-[8%] px-3 py-3 font-semibold">Credits</th>
-                  <th className="w-[8%] px-3 py-3 font-semibold">Bookings</th>
-                  <th className="w-[17%] px-3 py-3 font-semibold">Actions</th>
+                  <th className="w-[12%] px-3 py-3 font-semibold">Status</th>
+                  <th className="w-[10%] px-3 py-3 font-semibold">Credits</th>
+                  <th className="w-[9%] px-3 py-3 font-semibold">Bookings</th>
+                  <th className="w-[18%] px-3 py-3 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -169,11 +167,6 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
                         >
                           {membershipStatusLabel(member.membershipStatus)}
                         </span>
-                      </td>
-                      <td className="px-3 py-3">
-                        <p className="truncate text-muted" title={membershipPlanLabel(member.membershipPlan)}>
-                          {membershipPlanLabel(member.membershipPlan)}
-                        </p>
                       </td>
                       <td className="px-3 py-3 font-medium text-plum">
                         {formatCredits(member.creditsRemaining)}

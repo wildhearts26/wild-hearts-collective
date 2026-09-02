@@ -13,7 +13,6 @@ import {
   type NotificationPreferences,
 } from "@/lib/profile-config";
 import {
-  membershipPlanLabel,
   membershipStatusLabel,
   membershipStatusTone,
 } from "@/lib/membership-config";
@@ -285,9 +284,6 @@ export function MemberProfileDashboard({
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${membershipStatusTone(profile.membership.status)}`}>
                     {membershipStatusLabel(profile.membership.status)}
                   </span>
-                  <span className="rounded-full bg-sage/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-plum">
-                    {membershipPlanLabel(profile.membership.plan)}
-                  </span>
                   {profile.isChild ? (
                     <span className="rounded-full bg-pink-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand">
                       Child member
@@ -304,12 +300,8 @@ export function MemberProfileDashboard({
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted">Next renewal</dt>
-                    <dd className="font-medium text-plum">
-                      {profile.membership.renewsAt
-                        ? formatUkDateLong(profile.membership.renewsAt)
-                        : "—"}
-                    </dd>
+                    <dt className="text-muted">Class credits</dt>
+                    <dd className="font-medium text-plum">{profile.membership.creditsRemaining}</dd>
                   </div>
                 </dl>
               </div>
@@ -441,9 +433,9 @@ export function MemberProfileDashboard({
           <ProfileCard id="activity" title="Membership & class activity">
             <div className="grid gap-6 lg:grid-cols-2">
               <div>
-                <h3 className="font-semibold text-plum">Plan details</h3>
+                <h3 className="font-semibold text-plum">Credits</h3>
                 <p className="mt-2 text-sm text-muted">
-                  {membershipPlanLabel(profile.membership.plan)} · Credits remaining: {profile.membership.creditsRemaining}
+                  {profile.membership.creditsRemaining} class credits available
                 </p>
                 <Link href="/account/credits" className="mt-4 inline-block text-sm font-semibold text-brand hover:underline">
                   View credit activity & buy packs

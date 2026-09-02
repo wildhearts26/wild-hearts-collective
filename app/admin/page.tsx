@@ -8,9 +8,9 @@ import { AdminNav } from "@/app/components/admin-nav";
 import { requireAdminPage } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import { getAdminDashboardStats } from "@/lib/admin-dashboard-service";
-import { formatSessionDateTime, formatUkDateShort, formatUkDateTimeShort } from "@/lib/booking-config";
+import { formatSessionDateTime, formatUkDateTimeShort } from "@/lib/booking-config";
+import { formatCredits } from "@/lib/credit-units";
 import {
-  membershipPlanLabel,
   membershipStatusLabel,
 } from "@/lib/membership-config";
 import { sessionPublicTitle } from "@/lib/session-display";
@@ -171,13 +171,13 @@ export default async function AdminDashboardPage({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">
-          <h2 className="font-display text-2xl text-plum">Upcoming renewals</h2>
-          <p className="mt-2 text-sm text-muted">Next 30 days</p>
-          {stats.upcomingRenewals.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">No renewals due in the next 30 days.</p>
+          <h2 className="font-display text-2xl text-plum">Class credit balances</h2>
+          <p className="mt-2 text-sm text-muted">Members with credits on their account</p>
+          {stats.membersWithCredits.length === 0 ? (
+            <p className="mt-4 text-sm text-muted">No members currently have class credits.</p>
           ) : (
             <ul className="mt-4 divide-y divide-plum/10">
-              {stats.upcomingRenewals.map((member) => (
+              {stats.membersWithCredits.map((member) => (
                 <li key={member.id} className="flex items-center justify-between gap-4 py-3">
                   <div>
                     <Link
@@ -188,16 +188,9 @@ export default async function AdminDashboardPage({
                     </Link>
                     <p className="text-xs text-muted">{member.email}</p>
                   </div>
-                  <div className="text-right text-sm">
-                    <p className="font-medium text-plum">
-                      {member.membershipRenewsAt
-                        ? formatUkDateShort(member.membershipRenewsAt)
-                        : "—"}
-                    </p>
-                    <p className="text-xs text-muted">
-                      {membershipPlanLabel(member.membershipPlan)}
-                    </p>
-                  </div>
+                  <p className="text-sm font-medium text-plum">
+                    {formatCredits(member.creditsRemaining)} credits
+                  </p>
                 </li>
               ))}
             </ul>
