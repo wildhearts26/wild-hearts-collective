@@ -94,7 +94,7 @@ export function getStudioEmail() {
 }
 
 /** Optional extra copy of studio notifications (comma-separated in env). */
-const DEFAULT_STUDIO_EMAIL_CC = "wildhearts760@gmail.com";
+const DEFAULT_STUDIO_EMAIL_CC = "wildhearts790@gmail.com";
 
 /** Extra recipients for admin/studio notification emails (comma-separated). */
 export function getStudioEmailCopies() {
