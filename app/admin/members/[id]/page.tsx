@@ -122,6 +122,7 @@ export default async function AdminMemberDetailPage({ params }: PageProps) {
           auditLogs={auditLogs.map((entry) => ({
             id: entry.id,
             action: entry.action,
+            adminLabel: entry.adminLabel,
             details: entry.details,
             createdAt: entry.createdAt.toISOString(),
           }))}

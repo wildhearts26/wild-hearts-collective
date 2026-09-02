@@ -43,9 +43,9 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
     where: query
       ? {
           OR: [
-            { name: { contains: query } },
-            { email: { contains: query } },
-            { phone: { contains: query } },
+            { name: { contains: query, mode: "insensitive" } },
+            { email: { contains: query, mode: "insensitive" } },
+            { phone: { contains: query, mode: "insensitive" } },
           ],
         }
       : {},

@@ -21,6 +21,7 @@ import {
   formatUkDateShort,
   formatUkDateTimeShort,
 } from "@/lib/booking-config";
+import { formatAdminAuditSummary } from "@/lib/admin-audit-format";
 import type { MemberProfile } from "@/lib/member-profile-service";
 import { idDocumentStatusLabel, memberTypeLabel } from "@/lib/household-config";
 
@@ -49,6 +50,7 @@ type AdminMemberDetailProps = {
   auditLogs: {
     id: string;
     action: string;
+    adminLabel?: string | null;
     details: string | null;
     createdAt: string;
   }[];
@@ -662,11 +664,17 @@ export function AdminMemberDetail({
           <ul className="mt-4 divide-y divide-plum/10">
             {auditLogs.map((entry) => (
               <li key={entry.id} className="flex flex-wrap items-start justify-between gap-2 py-3 text-sm">
-                <div>
-                  <p className="font-semibold text-plum">{entry.action}</p>
-                  {entry.details && <p className="text-xs text-muted">{entry.details}</p>}
+                <div className="min-w-0 max-w-3xl">
+                  <p className="font-semibold text-plum">
+                    {formatAdminAuditSummary({
+                      action: entry.action,
+                      adminLabel: entry.adminLabel,
+                      details: entry.details,
+                      targetUser: { name: member.name },
+                    })}
+                  </p>
                 </div>
-                <time className="text-xs text-muted">{formatUkDateTimeShort(entry.createdAt)}</time>
+                <time className="shrink-0 text-xs text-muted">{formatUkDateTimeShort(entry.createdAt)}</time>
               </li>
             ))}
           </ul>

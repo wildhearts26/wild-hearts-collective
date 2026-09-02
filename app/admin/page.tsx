@@ -8,6 +8,7 @@ import { AdminNav } from "@/app/components/admin-nav";
 import { requireAdminPage } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
 import { getAdminDashboardStats } from "@/lib/admin-dashboard-service";
+import { formatAdminAuditSummary } from "@/lib/admin-audit-format";
 import { formatSessionDateTime, formatUkDateTimeShort } from "@/lib/booking-config";
 import { formatCredits } from "@/lib/credit-units";
 import {
@@ -218,7 +219,7 @@ export default async function AdminDashboardPage({
 
       <AdminCollapsibleSection
         title="Recent admin activity"
-        defaultOpen={false}
+        defaultOpen
         empty={stats.recentAudit.length === 0}
       >
         {stats.recentAudit.length === 0 ? (
@@ -227,18 +228,20 @@ export default async function AdminDashboardPage({
           <ul className="mt-4 divide-y divide-plum/10">
             {stats.recentAudit.map((entry) => (
               <li key={entry.id} className="flex flex-wrap items-start justify-between gap-2 py-3 text-sm">
-                <div>
-                  <p className="font-semibold text-plum">{entry.action}</p>
+                <div className="min-w-0 max-w-3xl">
+                  <p className="font-semibold text-plum">
+                    {formatAdminAuditSummary(entry)}
+                  </p>
                   {entry.targetUser && (
                     <Link
                       href={`/admin/members/${entry.targetUser.id}`}
-                      className="text-brand hover:underline"
+                      className="text-xs font-semibold text-brand hover:underline"
                     >
-                      {entry.targetUser.name}
+                      Open {entry.targetUser.name}&apos;s profile
                     </Link>
                   )}
                 </div>
-                <time className="text-xs text-muted">{formatUkDateTimeShort(entry.createdAt)}</time>
+                <time className="shrink-0 text-xs text-muted">{formatUkDateTimeShort(entry.createdAt)}</time>
               </li>
             ))}
           </ul>

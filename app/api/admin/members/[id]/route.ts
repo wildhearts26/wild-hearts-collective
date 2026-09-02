@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { logAdminAction } from "@/lib/admin-audit";
+import {
+  buildMemberAuditChanges,
+  logAdminAction,
+} from "@/lib/admin-audit";
 import { requireAdmin } from "@/lib/admin-api";
 import { ADMIN_PERMISSIONS } from "@/lib/admin-permissions";
+import { CREDIT_REASON } from "@/lib/booking-advanced-config";
 import {
   profileSelectFields,
   serializeDisciplineSkills,
@@ -100,6 +104,7 @@ export async function GET(_request: Request, context: RouteContext) {
     auditLogs: auditLogs.map((entry) => ({
       id: entry.id,
       action: entry.action,
+      adminLabel: entry.adminLabel,
       details: entry.details,
       createdAt: entry.createdAt.toISOString(),
     })),
@@ -156,8 +161,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         ? body.experienceLevel
         : "beginner";
     const skills: DisciplineSkills = {};
-    for (const id of body.disciplineInterests) {
-      skills[id] = level;
+    for (const disciplineId of body.disciplineInterests) {
+      skills[disciplineId] = level;
     }
     data.disciplineInterests = serializeDisciplineSkills(skills);
     data.experienceLevel = null;
@@ -172,23 +177,69 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
   if (body.membershipStatus !== undefined) data.membershipStatus = body.membershipStatus;
-  if (body.creditsRemaining !== undefined) data.creditsRemaining = body.creditsRemaining;
+  if (body.creditsRemaining !== undefined) {
+    const credits = Number(body.creditsRemaining);
+    if (!Number.isFinite(credits) || credits < 0) {
+      return NextResponse.json(
+        { error: "Class credits must be zero or greater." },
+        { status: 400 },
+      );
+    }
+    data.creditsRemaining = Math.round(credits * 100) / 100;
+  }
   if (body.accountStatus !== undefined) data.accountStatus = body.accountStatus;
 
-  if (Object.keys(data).length === 0) {
+  // Only persist fields that actually changed — avoids noisy audits on Save.
+  const changes = buildMemberAuditChanges(
+    existing as unknown as Record<string, unknown>,
+    data,
+  );
+
+  if (changes.length === 0) {
     return NextResponse.json({ error: "No changes submitted." }, { status: 400 });
   }
 
-  const updated = await db.user.update({
-    where: { id },
-    data,
-    select: profileSelectFields,
+  const patchData = Object.fromEntries(changes.map((change) => [change.field, change.to]));
+  const creditChange = changes.find((change) => change.field === "creditsRemaining");
+  const creditDelta = creditChange
+    ? Math.round(
+        (Number(creditChange.to ?? 0) - Number(creditChange.from ?? 0)) * 100,
+      ) / 100
+    : 0;
+
+  const updated = await db.$transaction(async (tx) => {
+    const member = await tx.user.update({
+      where: { id },
+      data: patchData,
+      select: profileSelectFields,
+    });
+
+    // Ledger row only when an admin actually changes the credit balance going forward.
+    if (creditChange && creditDelta !== 0) {
+      await tx.creditTransaction.create({
+        data: {
+          userId: id,
+          amount: creditDelta,
+          balanceAfter: Number(member.creditsRemaining),
+          reason: CREDIT_REASON.adminAdjustment,
+        },
+      });
+    }
+
+    return member;
   });
 
   await logAdminAction({
     action: "member.updated",
     targetUserId: id,
-    details: { fields: Object.keys(data) },
+    details: {
+      changes: changes.map((change) => ({
+        field: change.field,
+        from: change.from,
+        to: change.to,
+      })),
+      fields: changes.map((change) => change.field),
+    },
   });
 
   return NextResponse.json({ member: toMemberProfile(updated) });

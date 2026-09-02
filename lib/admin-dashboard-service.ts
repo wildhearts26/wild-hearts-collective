@@ -92,7 +92,7 @@ export async function getAdminDashboardStats() {
     }),
     db.adminAuditLog.findMany({
       orderBy: { createdAt: "desc" },
-      take: 10,
+      take: 25,
       include: {
         targetUser: { select: { id: true, name: true, email: true } },
       },
