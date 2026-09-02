@@ -34,16 +34,19 @@ export default function TermsPage() {
           </p>
           <p>
             Cancel at least 24 hours before the class start time to receive a
-            refund as class credits — £10 equals 1 credit, £5 equals 0.5 credit,
-            and so on. Late cancellations within 24 hours of the class are not
-            refunded.
+            refund as class credits matching the credit cost of that class — for
+            example, 1 credit for a standard 1-hour class or 1.5 credits for 90
+            minutes. The cash price you paid does not change the credit refund.
+            Late cancellations within 24 hours of the class are not refunded.
           </p>
           <p>
-            4-week courses are booked as a full block. Cancelling a course
-            cancels all four weeks. If you cancel before the course starts, and
-            at least 24 hours before week 1, you receive a refund as class
-            credits. If the course has already started, all four weeks are still
-            cancelled but there is no refund.
+            4-week courses are booked as a full block and paid in full. Class
+            credits cannot be used to book courses. Cancelling a course cancels
+            all four weeks. If you cancel before the course starts, and at least
+            24 hours before week 1, you receive a credit refund equal to four
+            weeks at the per-week credit cost (for example, 4 credits when each
+            week is 1 credit). If the course has already started, all four weeks
+            are still cancelled but there is no refund.
           </p>
           <p>
             Cash refunds are available but must be requested by emailing{" "}

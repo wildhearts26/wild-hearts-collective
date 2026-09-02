@@ -4,9 +4,12 @@ import {
   CREDIT_REASON,
 } from "@/lib/booking-advanced-config";
 import {
+  bookingHadPayment,
+  resolveBookingRefundCredits,
+} from "@/lib/booking-refund-credits";
+import {
   DEFAULT_CREDIT_COST,
   hasEnoughCredits,
-  penceToCredits,
 } from "@/lib/credit-units";
 import { db } from "@/lib/db";
 import { sendClassPackPurchaseEmails } from "@/lib/email";
@@ -341,8 +344,8 @@ async function resolveRefundUserId(
 
 /**
  * Refund a cancelled booking as class credits.
- * Credit-paid bookings return the credits charged; card/gift payments convert
- * at £10 = 1 credit (£5 = 0.5).
+ * Refunds match the session credit cost (e.g. 1 credit for a standard class),
+ * not the cash amount paid.
  */
 export async function refundBookingAsCredits(bookingId: string) {
   return db.$transaction(async (tx) => {
@@ -356,6 +359,18 @@ export async function refundBookingAsCredits(bookingId: string) {
         creditsCharged: true,
         amountPaid: true,
         giftAmountApplied: true,
+        session: {
+          select: {
+            creditCost: true,
+            courseSeriesId: true,
+            class: {
+              select: {
+                slug: true,
+                creditCost: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -379,16 +394,17 @@ export async function refundBookingAsCredits(bookingId: string) {
       return { refunded: false as const, creditsRefunded: 0, noAccount: true as const };
     }
 
-    let cost = 0;
-    if (booking.paidWithCredit) {
-      cost =
-        booking.creditsCharged != null && booking.creditsCharged > 0
-          ? booking.creditsCharged
-          : DEFAULT_CREDIT_COST;
-    } else {
-      const pence = (booking.amountPaid ?? 0) + (booking.giftAmountApplied ?? 0);
-      cost = penceToCredits(pence);
+    if (!bookingHadPayment(booking)) {
+      return { refunded: false as const, creditsRefunded: 0 };
     }
+
+    const cost = resolveBookingRefundCredits({
+      paidWithCredit: booking.paidWithCredit,
+      creditsCharged: booking.creditsCharged,
+      amountPaid: booking.amountPaid,
+      giftAmountApplied: booking.giftAmountApplied,
+      session: booking.session,
+    });
 
     if (cost <= 0) {
       return { refunded: false as const, creditsRefunded: 0 };

@@ -91,7 +91,8 @@ export function AdminBookingActions({
             </p>
             {refundCredit && (
               <p className="mt-3 font-medium text-plum">
-                A class credit equivalent will be refunded to the member (£10 = 1 credit).
+                A class credit refund matching the credit cost of that booking will be
+                added to the member&apos;s account.
               </p>
             )}
           </>

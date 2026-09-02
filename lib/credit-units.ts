@@ -2,9 +2,10 @@
 
 export const DEFAULT_CREDIT_COST = 1;
 
-/** Studio refund rate: £10 = 1 credit, £5 = 0.5 credit. */
+/** @deprecated Refunds no longer convert cash to credits at this rate. Kept for legacy reference. */
 export const PENCE_PER_CREDIT = 1000;
 
+/** @deprecated Use resolveBookingRefundCredits instead. */
 export function penceToCredits(pence: number) {
   if (!Number.isFinite(pence) || pence <= 0) return 0;
   return Math.round((pence / PENCE_PER_CREDIT) * 100) / 100;

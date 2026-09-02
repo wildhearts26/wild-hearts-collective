@@ -43,7 +43,7 @@ function refundMessage(options: {
   }
 
   if (options.creditRefunded && options.creditsRefunded) {
-    return `Your booking was cancelled and ${formatCreditLabel(options.creditsRefunded)} ${options.creditsRefunded === 1 ? "has" : "have"} been added to your account (£10 = 1 credit). ${CASH_REFUND_NOTE}`;
+    return `Your booking was cancelled and ${formatCreditLabel(options.creditsRefunded)} ${options.creditsRefunded === 1 ? "has" : "have"} been added to your account. ${CASH_REFUND_NOTE}`;
   }
 
   if (options.noAccount) {

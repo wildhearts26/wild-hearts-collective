@@ -121,6 +121,7 @@ export async function enrolRemainingCourseWeeks(primaryBookingId: string) {
         // Fee was paid on the course block (primary booking).
         amountPaid: 0,
         paidWithCredit: false,
+        creditsCharged: 0,
       },
     });
     createdIds.push(booking.id);

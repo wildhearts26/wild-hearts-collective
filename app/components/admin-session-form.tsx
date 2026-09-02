@@ -271,7 +271,7 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
           </select>
         </Field>
 
-        <Field label="Price for this session (£)">
+        <Field label={isCourse ? "Course block price (£)" : "Price for this session (£)"}>
           <input
             type="number"
             min={0.01}
@@ -280,13 +280,16 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
             onChange={(event) => setPricePounds(event.target.value)}
             className="w-full rounded-sm border border-plum/15 px-3 py-2 text-sm"
             placeholder="Leave blank for studio default"
+            disabled={isCourse}
           />
           <p className="mt-1 text-xs text-muted">
-            Optional override. Blank uses the studio drop-in / course price.
+            {isCourse
+              ? "4-week courses use the block price from Studio Pricing. Per-session price overrides do not apply."
+              : "Optional override. Blank uses the studio drop-in price."}
           </p>
         </Field>
 
-        <Field label="Class credits used">
+        <Field label={isCourse ? "Credits per week" : "Class credits used"}>
           <input
             type="number"
             min={0.25}
@@ -297,8 +300,18 @@ export function AdminSessionForm({ mode, sessionId, initial }: AdminSessionFormP
             placeholder="Leave blank for 1 credit"
           />
           <p className="mt-1 text-xs text-muted">
-            e.g. 1.5 for a 90-minute class. Blank defaults to{" "}
-            {selectedClass?.creditCost ?? 1}.
+            {isCourse ? (
+              <>
+                Per-week credit value for refund calculation. Course cancellations
+                refund four weeks combined (e.g. 4 credits when each week is 1).
+                Class credits cannot be used to book courses.
+              </>
+            ) : (
+              <>
+                e.g. 1.5 for a 90-minute class. Blank defaults to{" "}
+                {selectedClass?.creditCost ?? 1}.
+              </>
+            )}
           </p>
         </Field>
       </div>

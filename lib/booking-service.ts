@@ -9,6 +9,8 @@ import {
   CANCELLATION_TYPE,
   PAYMENT_HOLD_MS,
 } from "@/lib/booking-advanced-config";
+import { resolveCreditsChargedOnConfirm } from "@/lib/booking-refund-credits";
+import { formatCreditLabel } from "@/lib/credit-units";
 import { db } from "@/lib/db";
 import {
   sendBookingCancelledEmails,
@@ -278,12 +280,36 @@ export async function confirmBooking(
     paymentSummary?: string;
   },
 ) {
+  const existing = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      session: { include: { class: true } },
+      giftCard: { select: { code: true } },
+      voucher: { select: { code: true, discountPercent: true } },
+    },
+  });
+
+  if (!existing) {
+    throw new Error("Booking not found.");
+  }
+
+  const amountPaid =
+    options?.amountPaid !== undefined ? options.amountPaid : existing.amountPaid;
+  const creditsCharged = resolveCreditsChargedOnConfirm({
+    paidWithCredit: existing.paidWithCredit,
+    creditsCharged: existing.creditsCharged,
+    amountPaid,
+    giftAmountApplied: existing.giftAmountApplied,
+    session: existing.session,
+  });
+
   const booking = await db.booking.update({
     where: { id: bookingId },
     data: {
       status: BOOKING_STATUS.confirmed,
       stripePaymentId: options?.stripePaymentId,
-      amountPaid: options?.amountPaid,
+      amountPaid,
+      creditsCharged,
     },
     include: {
       session: { include: { class: true } },
@@ -295,7 +321,11 @@ export async function confirmBooking(
   let paymentSummary = options?.paymentSummary;
   if (!paymentSummary) {
     if (booking.paidWithCredit) {
-      paymentSummary = "Paid with 1 class credit";
+      const creditCost =
+        booking.creditsCharged != null && booking.creditsCharged > 0
+          ? booking.creditsCharged
+          : 1;
+      paymentSummary = `Paid with ${formatCreditLabel(creditCost)}`;
     } else if (booking.giftAmountApplied && booking.giftAmountApplied > 0) {
       const giftLabel = formatMoneyFromPence(booking.giftAmountApplied);
       const cardPaid =

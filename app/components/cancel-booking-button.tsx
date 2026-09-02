@@ -31,7 +31,7 @@ export function CancelBookingButton({
   async function cancelBooking() {
     const confirmText = isCourse
       ? "Cancel this 4-week course? All four weeks will be cancelled. You receive class credits only if the course has not started and you cancel at least 24 hours before week 1. If the course has already started, there is no refund. Cash refunds can be requested by email."
-      : "Cancel this booking? Cancellations at least 24 hours before class receive class credits (£10 = 1 credit). Cash refunds can be requested by email.";
+      : "Cancel this booking? Cancellations at least 24 hours before class receive class credits matching the credit cost of that class (not the cash amount paid). Cash refunds can be requested by email.";
 
     if (!confirm(confirmText)) {
       return;

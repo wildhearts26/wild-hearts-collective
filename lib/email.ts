@@ -325,7 +325,7 @@ export async function sendBookingCancelledEmails(
           <p>Your booking for the session below has been cancelled.</p>
           ${sessionDetailBlock(session.classTitle, session.startsAt)}
           <p>If this was unexpected, please contact us and we will be happy to help.</p>
-          <p>On-time cancellations are refunded as class credits (£10 = 1 credit). Cash refunds are available but must be requested by email and are processed manually.</p>
+          <p>On-time cancellations are refunded as class credits matching the credit cost of that class. Cash refunds are available but must be requested by email and are processed manually.</p>
         `,
         cta: {
           label: "Book another class",

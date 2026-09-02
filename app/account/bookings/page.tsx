@@ -135,8 +135,9 @@ export default async function AccountBookingsPage() {
         </Link>
       </p>
       <p className="mt-3 text-sm text-muted">
-        Cancellations at least 24 hours before class receive class credits (£10 = 1 credit).
-        Cancelling a 4-week course cancels all four weeks. If the course has already
+        Cancellations at least 24 hours before class receive class credits matching
+        the credit cost of that class (not the cash amount paid). Cancelling a
+        4-week course cancels all four weeks. If the course has already
         started, there is no refund. Cash refunds are available but must be requested by
         emailing{" "}
         <a href={`mailto:${contact.email}`} className="font-semibold text-brand hover:underline">
