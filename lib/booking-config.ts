@@ -93,8 +93,8 @@ export function getStudioEmail() {
   return process.env.STUDIO_EMAIL?.trim() || "hello@wildheartscollective.org";
 }
 
-/** Temporary extra copy of studio notifications until the Gmail address is retired. */
-const DEFAULT_STUDIO_EMAIL_CC = "getu4ever@gmail.com";
+/** Optional extra copy of studio notifications (comma-separated in env). */
+const DEFAULT_STUDIO_EMAIL_CC = "wildhearts760@gmail.com";
 
 /** Extra recipients for admin/studio notification emails (comma-separated). */
 export function getStudioEmailCopies() {
