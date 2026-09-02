@@ -273,6 +273,10 @@ export function AdminMemberDetail({
 
         <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
           <div>
+            <dt className="text-muted">Credits</dt>
+            <dd className="font-semibold text-plum">{member.membership.creditsRemaining}</dd>
+          </div>
+          <div>
             <dt className="text-muted">Plan</dt>
             <dd className="font-semibold text-plum">{membershipPlanLabel(member.membership.plan)}</dd>
           </div>
@@ -283,10 +287,6 @@ export function AdminMemberDetail({
           <div>
             <dt className="text-muted">Renews</dt>
             <dd className="font-semibold text-plum">{formatDate(member.membership.renewsAt)}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">Credits</dt>
-            <dd className="font-semibold text-plum">{member.membership.creditsRemaining}</dd>
           </div>
         </dl>
       </section>

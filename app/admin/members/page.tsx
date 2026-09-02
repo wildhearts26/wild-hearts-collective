@@ -13,7 +13,12 @@ import {
   membershipStatusTone,
   MEMBERSHIP_STATUS,
 } from "@/lib/membership-config";
+import {
+  adminMemberOrderBy,
+  parseAdminMemberSort,
+} from "@/lib/admin-members-list";
 import { formatUkDateTimeShort } from "@/lib/booking-config";
+import { formatCredits } from "@/lib/credit-units";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -24,8 +29,7 @@ export const metadata: Metadata = {
 type PageProps = {
   searchParams: Promise<{
     q?: string;
-    status?: string;
-    plan?: string;
+    sort?: string;
   }>;
 };
 
@@ -34,26 +38,19 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
 
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-  const statusFilter = params.status?.trim() ?? "";
-  const planFilter = params.plan?.trim() ?? "";
+  const sort = parseAdminMemberSort(params.sort);
 
   const members = await db.user.findMany({
-    where: {
-      AND: [
-        query
-          ? {
-              OR: [
-                { name: { contains: query } },
-                { email: { contains: query } },
-                { phone: { contains: query } },
-              ],
-            }
-          : {},
-        statusFilter ? { membershipStatus: statusFilter } : {},
-        planFilter ? { membershipPlan: planFilter } : {},
-      ],
-    },
-    orderBy: { createdAt: "desc" },
+    where: query
+      ? {
+          OR: [
+            { name: { contains: query } },
+            { email: { contains: query } },
+            { phone: { contains: query } },
+          ],
+        }
+      : {},
+    orderBy: adminMemberOrderBy(sort),
     include: {
       oauthAccounts: { select: { provider: true, profileImageUrl: true } },
       _count: { select: { bookings: true } },
@@ -73,8 +70,8 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
           <div className="mb-5 h-px w-12 bg-pink" />
           <h1 className="font-display text-4xl text-plum sm:text-5xl">Members</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-            Search, filter, and manage member profiles. Click a member to view safety details
-            and membership controls.
+            Search members, sort by name, credits, or bookings, and open a profile for safety
+            details and membership controls.
           </p>
           <AdminNav active="members" permissions={session.permissions} />
         </div>
@@ -97,11 +94,7 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
       </div>
 
       <Suspense fallback={<div className="mt-8 h-16 rounded-lg border border-plum/10 bg-surface" />}>
-        <AdminMemberFilters
-          initialQuery={query}
-          initialStatus={statusFilter}
-          initialPlan={planFilter}
-        />
+        <AdminMemberFilters initialQuery={query} initialSort={sort} />
       </Suspense>
 
       <div className="mt-6 overflow-hidden rounded-lg border border-plum/10 bg-surface shadow-sm">
@@ -112,13 +105,14 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
             <table className="w-full table-fixed text-left text-sm">
               <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
                 <tr>
-                  <th className="w-[12%] px-3 py-3 font-semibold">Registered</th>
-                  <th className="w-[20%] px-3 py-3 font-semibold">Name</th>
-                  <th className="w-[20%] px-3 py-3 font-semibold">Email</th>
-                  <th className="w-[12%] px-3 py-3 font-semibold">Status</th>
-                  <th className="w-[12%] px-3 py-3 font-semibold">Plan</th>
+                  <th className="w-[11%] px-3 py-3 font-semibold">Registered</th>
+                  <th className="w-[18%] px-3 py-3 font-semibold">Name</th>
+                  <th className="w-[18%] px-3 py-3 font-semibold">Email</th>
+                  <th className="w-[10%] px-3 py-3 font-semibold">Status</th>
+                  <th className="w-[10%] px-3 py-3 font-semibold">Plan</th>
+                  <th className="w-[8%] px-3 py-3 font-semibold">Credits</th>
                   <th className="w-[8%] px-3 py-3 font-semibold">Bookings</th>
-                  <th className="w-[16%] px-3 py-3 font-semibold">Actions</th>
+                  <th className="w-[17%] px-3 py-3 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -180,6 +174,9 @@ export default async function AdminMembersPage({ searchParams }: PageProps) {
                         <p className="truncate text-muted" title={membershipPlanLabel(member.membershipPlan)}>
                           {membershipPlanLabel(member.membershipPlan)}
                         </p>
+                      </td>
+                      <td className="px-3 py-3 font-medium text-plum">
+                        {formatCredits(member.creditsRemaining)}
                       </td>
                       <td className="px-3 py-3 text-muted">{member._count.bookings}</td>
                       <td className="px-3 py-3">
