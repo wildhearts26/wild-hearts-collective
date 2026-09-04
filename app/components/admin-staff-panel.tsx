@@ -6,6 +6,7 @@ import {
   ADMIN_PERMISSION_META,
   ADMIN_ROLES,
   ROLE_DEFAULT_PERMISSIONS,
+  canChangeStaffPassword,
   type AdminPermission,
   type AdminRole,
   roleLabel,
@@ -153,7 +154,11 @@ export function AdminStaffPanel({
         body: JSON.stringify({
           name: editForm.name,
           email: editForm.email,
-          password: editForm.password || undefined,
+          password:
+            editing &&
+            !canChangeStaffPassword(actorRole, editing.role)
+              ? undefined
+              : editForm.password || undefined,
           role: editForm.role,
           active: editForm.active,
           useRoleDefaults: editForm.useRoleDefaults,
@@ -333,15 +338,19 @@ export function AdminStaffPanel({
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="New password (optional)">
-                    <input
-                      type="password"
-                      minLength={8}
-                      value={editForm.password}
-                      onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
+                  {canChangeStaffPassword(actorRole, user.role) && (
+                    <Field label="New password (optional)">
+                      <input
+                        type="password"
+                        minLength={8}
+                        value={editForm.password}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, password: e.target.value })
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                  )}
                   <Field label="Role">
                     <select
                       value={editForm.role}

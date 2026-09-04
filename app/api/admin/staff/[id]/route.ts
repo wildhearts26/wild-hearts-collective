@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-api";
 import {
   ADMIN_PERMISSIONS,
+  canChangeStaffPassword,
   isAdminRole,
   sanitizePermissions,
 } from "@/lib/admin-permissions";
+import { db } from "@/lib/db";
 import { updateAdminUser } from "@/lib/admin-staff-service";
 
 type RouteContext = {
@@ -29,6 +31,24 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
+    const password =
+      typeof body.password === "string" && body.password.length > 0
+        ? body.password
+        : undefined;
+
+    if (password) {
+      const target = await db.adminUser.findUnique({
+        where: { id },
+        select: { role: true },
+      });
+      if (target && !canChangeStaffPassword(admin.session.role, target.role)) {
+        return NextResponse.json(
+          { error: "Only a master admin can change the master password." },
+          { status: 403 },
+        );
+      }
+    }
+
     const useRoleDefaults = body.useRoleDefaults === true;
     const clearOverrides = body.useRoleDefaults === true;
     const permissions =
@@ -43,18 +63,20 @@ export async function PATCH(request: Request, context: RouteContext) {
       {
         email: typeof body.email === "string" ? body.email : undefined,
         name: typeof body.name === "string" ? body.name : undefined,
-        password: typeof body.password === "string" ? body.password : undefined,
+        password,
         role,
         permissions,
         active: typeof body.active === "boolean" ? body.active : undefined,
       },
       admin.session.id,
+      admin.session.role,
     );
 
     return NextResponse.json({ user });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to update staff account.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const status = message.includes("Only a master admin") ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }

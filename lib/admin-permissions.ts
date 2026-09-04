@@ -171,6 +171,14 @@ export function canAccessAdminSection(
   return false;
 }
 
+/** Only a master can set or reset a master admin's password. */
+export function canChangeStaffPassword(actorRole: AdminRole, targetRole: string) {
+  if (targetRole === ADMIN_ROLES.master) {
+    return actorRole === ADMIN_ROLES.master;
+  }
+  return true;
+}
+
 export function roleLabel(role: AdminRole) {
   switch (role) {
     case ADMIN_ROLES.master:
