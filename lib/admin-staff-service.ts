@@ -4,7 +4,6 @@ import {
   ADMIN_ROLES,
   type AdminPermission,
   type AdminRole,
-  canChangeStaffPassword,
   isAdminRole,
   resolveAdminPermissions,
   ROLE_DEFAULT_PERMISSIONS,
@@ -129,17 +128,9 @@ export async function updateAdminUser(
     active?: boolean;
   },
   actorId: string,
-  actorRole: AdminRole,
 ) {
   const existing = await db.adminUser.findUnique({ where: { id } });
   if (!existing) throw new Error("Staff account not found.");
-
-  if (
-    input.password &&
-    !canChangeStaffPassword(actorRole, existing.role)
-  ) {
-    throw new Error("Only a master admin can change the master password.");
-  }
 
   if (existing.role === ADMIN_ROLES.master && input.active === false) {
     const masters = await db.adminUser.count({
