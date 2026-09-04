@@ -5,7 +5,6 @@ import {
   formatUkDateLong,
   getAppBaseUrl,
   getStudioEmail,
-  getStudioEmailCopies,
 } from "@/lib/booking-config";
 import {
   buildBrandedEmail,
@@ -74,10 +73,8 @@ function getFromAddress() {
 }
 
 function studioNotify() {
-  const copies = getStudioEmailCopies();
   return {
     to: getStudioEmail(),
-    ...(copies.length > 0 ? { cc: copies } : {}),
   };
 }
 

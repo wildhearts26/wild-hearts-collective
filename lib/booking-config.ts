@@ -93,26 +93,6 @@ export function getStudioEmail() {
   return process.env.STUDIO_EMAIL?.trim() || "hello@wildheartscollective.org";
 }
 
-/** Optional extra copy of studio notifications (comma-separated in env). */
-const DEFAULT_STUDIO_EMAIL_CC = "wildhearts790@gmail.com";
-
-/** Extra recipients for admin/studio notification emails (comma-separated). */
-export function getStudioEmailCopies() {
-  const raw = process.env.STUDIO_EMAIL_CC;
-  const value = (raw === undefined ? DEFAULT_STUDIO_EMAIL_CC : raw).trim();
-  if (!value) return [];
-
-  const primary = getStudioEmail().toLowerCase();
-  return [
-    ...new Set(
-      value
-        .split(",")
-        .map((email) => email.trim())
-        .filter((email) => email && email.toLowerCase() !== primary),
-    ),
-  ];
-}
-
 function toDate(value: Date | string | number) {
   return value instanceof Date ? value : new Date(value);
 }
