@@ -753,7 +753,7 @@ export function BookingForm() {
               ))}
             </div>
 
-            <div className="mt-4 max-h-[32rem] space-y-2 overflow-y-auto pr-1 sm:max-h-[36rem]">
+            <div className="mt-4 space-y-2">
               {loading && (
                 <p className="rounded-lg border border-dashed border-plum/15 px-4 py-8 text-center text-sm text-muted">
                   Loading sessions…
