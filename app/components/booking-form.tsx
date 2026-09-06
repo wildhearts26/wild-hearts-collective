@@ -145,6 +145,37 @@ const bookingSteps = [
   { title: "Pay in full online", detail: "Pay securely on this page" },
 ];
 
+function HowBookingWorksCard({
+  steps,
+  className = "",
+}: {
+  steps: { title: string; detail: string }[];
+  className?: string;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-plum/10 bg-surface p-5 shadow-sm ring-1 ring-plum/5 sm:p-6 ${className}`.trim()}
+    >
+      <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-plum">
+        How booking works
+      </h3>
+      <ol className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
+        {steps.map((step, index) => (
+          <li key={step.title} className="flex gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-pink-soft text-xs font-bold text-plum">
+              {index + 1}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{step.title}</p>
+              <p className="mt-0.5 text-sm text-muted">{step.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function formatSessionDate(startsAt: string) {
   return formatSessionDateParts(startsAt);
 }
@@ -732,6 +763,8 @@ export function BookingForm() {
               without notice if payment is not completed in time.
             </p>
           )}
+
+          <HowBookingWorksCard steps={visibleSteps} className="lg:hidden" />
 
           <section aria-labelledby="booking-step-1">
             <div className="flex items-center gap-3">
@@ -1439,24 +1472,7 @@ export function BookingForm() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-plum/10 bg-surface p-6 shadow-sm ring-1 ring-plum/5">
-          <h3 className="text-sm font-bold uppercase tracking-[0.14em] text-plum">
-            How booking works
-          </h3>
-          <ol className="mt-5 space-y-4">
-            {visibleSteps.map((step, index) => (
-              <li key={step.title} className="flex gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-pink-soft text-xs font-bold text-plum">
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                  <p className="mt-0.5 text-sm text-muted">{step.detail}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <HowBookingWorksCard steps={visibleSteps} className="hidden lg:block" />
 
         <div className="rounded-2xl border border-plum/10 bg-gradient-to-br from-sage/90 to-sage p-6 text-white shadow-lg">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pink-light">
