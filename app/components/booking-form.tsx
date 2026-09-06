@@ -784,7 +784,7 @@ export function BookingForm() {
                         setSelectedSessionId(session.id);
                       }}
                       disabled={session.alreadyBooked || Boolean(session.bookingDisabledReason)}
-                      className={`flex w-full items-start justify-between gap-4 rounded-xl border px-4 py-4 text-left transition ${
+                      className={`flex w-full min-w-0 flex-col gap-2 rounded-xl border px-4 py-4 text-left transition ${
                         session.alreadyBooked || session.bookingDisabledReason
                           ? "cursor-not-allowed border-plum/10 bg-cream/60 opacity-80"
                           : isSelected
@@ -792,39 +792,39 @@ export function BookingForm() {
                             : "border-plum/10 bg-white hover:border-pink/40 hover:bg-pink-soft/30"
                       }`}
                     >
-                      <div>
-                        <p className="font-semibold text-plum">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="min-w-0 flex-1 font-semibold text-plum">
                           {sessionDisplayTitle(session)}
                         </p>
-                        <p className="mt-1 text-sm text-muted">
-                          {date.weekday}, {date.shortDate}
-                        </p>
-                        <p className="mt-0.5 text-sm font-medium text-foreground">
-                          {date.time}
-                          {session.durationLabel ? ` · ${session.durationLabel}` : ""}
-                        </p>
-                        {session.description ? (
-                          <p className="mt-2 text-sm leading-relaxed text-muted">
-                            {session.description}
-                          </p>
-                        ) : null}
-                        {session.bookingDisabledReason ? (
-                          <p className="mt-2 text-sm font-medium text-plum">
-                            {session.bookingDisabledReason}
-                          </p>
-                        ) : null}
-                        <p className="mt-2 text-xs text-muted">
-                          {session.priceLabel ?? "Price on request"}
-                          {session.creditCost != null && session.creditCost !== 1
-                            ? ` · ${session.creditCostDisplay ?? formatCredits(session.creditCost)} credits`
-                            : ""}
-                        </p>
+                        <span
+                          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${availabilityBadgeClass(session)}`}
+                        >
+                          {availabilityLabel(session)}
+                        </span>
                       </div>
-                      <span
-                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${availabilityBadgeClass(session)}`}
-                      >
-                        {availabilityLabel(session)}
-                      </span>
+                      <p className="text-sm text-muted">
+                        {date.weekday}, {date.shortDate}
+                      </p>
+                      <p className="text-sm font-medium text-foreground">
+                        {date.time}
+                        {session.durationLabel ? ` · ${session.durationLabel}` : ""}
+                      </p>
+                      {session.description ? (
+                        <p className="text-sm leading-relaxed break-words text-muted">
+                          {session.description}
+                        </p>
+                      ) : null}
+                      {session.bookingDisabledReason ? (
+                        <p className="text-sm font-medium text-plum">
+                          {session.bookingDisabledReason}
+                        </p>
+                      ) : null}
+                      <p className="text-xs text-muted">
+                        {session.priceLabel ?? "Price on request"}
+                        {session.creditCost != null && session.creditCost !== 1
+                          ? ` · ${session.creditCostDisplay ?? formatCredits(session.creditCost)} credits`
+                          : ""}
+                      </p>
                     </button>
                   );
                 })}
