@@ -157,6 +157,7 @@ export function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const confirmationRef = useRef<HTMLDivElement>(null);
+  const detailsStepRef = useRef<HTMLElement>(null);
   const [sessions, setSessions] = useState<SessionOption[]>([]);
   const [config, setConfig] = useState<BookingConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -354,6 +355,15 @@ export function BookingForm() {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     confirmationRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
   }, [result, pendingPayment]);
+
+  function continueWithSession(sessionId: string) {
+    setSelectedSessionId(sessionId);
+    setError("");
+    // Let React paint the selected state, then move the guest into details/checkout.
+    window.requestAnimationFrame(() => {
+      detailsStepRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -732,7 +742,9 @@ export function BookingForm() {
                 <h3 id="booking-step-1" className="text-lg font-semibold text-plum">
                   Choose your class
                 </h3>
-                <p className="text-sm text-muted">Filter by type, then select a session.</p>
+                <p className="text-sm text-muted">
+                  Filter by type, then tap Book this session to continue.
+                </p>
               </div>
             </div>
 
@@ -753,7 +765,7 @@ export function BookingForm() {
               ))}
             </div>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-4 space-y-3">
               {loading && (
                 <p className="rounded-lg border border-dashed border-plum/15 px-4 py-8 text-center text-sm text-muted">
                   Loading sessions…
@@ -774,58 +786,102 @@ export function BookingForm() {
                 sessions.map((session) => {
                   const date = formatSessionDate(session.startsAt);
                   const isSelected = selectedSessionId === session.id;
+                  const isUnavailable =
+                    session.alreadyBooked || Boolean(session.bookingDisabledReason);
+                  const isFull = session.isFull && !isUnavailable;
 
                   return (
-                    <button
+                    <article
                       key={session.id}
-                      type="button"
-                      onClick={() => {
-                        if (session.alreadyBooked || session.bookingDisabledReason) return;
-                        setSelectedSessionId(session.id);
-                      }}
-                      disabled={session.alreadyBooked || Boolean(session.bookingDisabledReason)}
-                      className={`flex w-full min-w-0 flex-col gap-2 rounded-xl border px-4 py-4 text-left transition ${
-                        session.alreadyBooked || session.bookingDisabledReason
-                          ? "cursor-not-allowed border-plum/10 bg-cream/60 opacity-80"
+                      aria-current={isSelected ? "true" : undefined}
+                      className={`flex w-full min-w-0 flex-col gap-3 rounded-xl border px-4 py-4 text-left transition ${
+                        isUnavailable
+                          ? "border-plum/10 bg-cream/60 opacity-80"
                           : isSelected
                             ? "border-plum bg-pink-soft/60 ring-2 ring-pink/40"
-                            : "border-plum/10 bg-white hover:border-pink/40 hover:bg-pink-soft/30"
+                            : "border-plum/10 bg-white"
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="min-w-0 flex-1 font-semibold text-plum">
-                          {sessionDisplayTitle(session)}
+                      <div className="flex min-w-0 flex-col gap-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="min-w-0 flex-1 font-semibold text-plum">
+                            {sessionDisplayTitle(session)}
+                          </p>
+                          <span
+                            className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${availabilityBadgeClass(session)}`}
+                          >
+                            {availabilityLabel(session)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted">
+                          {date.weekday}, {date.shortDate}
                         </p>
-                        <span
-                          className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${availabilityBadgeClass(session)}`}
-                        >
-                          {availabilityLabel(session)}
-                        </span>
+                        <p className="text-sm font-medium text-foreground">
+                          {date.time}
+                          {session.durationLabel ? ` · ${session.durationLabel}` : ""}
+                        </p>
+                        {session.description ? (
+                          <p className="text-sm leading-relaxed break-words text-muted">
+                            {session.description}
+                          </p>
+                        ) : null}
+                        {session.bookingDisabledReason ? (
+                          <p className="text-sm font-medium text-plum">
+                            {session.bookingDisabledReason}
+                          </p>
+                        ) : null}
+                        <p className="text-xs text-muted">
+                          {session.priceLabel ?? "Price on request"}
+                          {session.creditCost != null && session.creditCost !== 1
+                            ? ` · ${session.creditCostDisplay ?? formatCredits(session.creditCost)} credits`
+                            : ""}
+                        </p>
                       </div>
-                      <p className="text-sm text-muted">
-                        {date.weekday}, {date.shortDate}
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {date.time}
-                        {session.durationLabel ? ` · ${session.durationLabel}` : ""}
-                      </p>
-                      {session.description ? (
-                        <p className="text-sm leading-relaxed break-words text-muted">
-                          {session.description}
+
+                      {session.alreadyBooked ? (
+                        <p className="rounded-sm bg-brand/10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-brand">
+                          Already on your bookings
                         </p>
-                      ) : null}
-                      {session.bookingDisabledReason ? (
-                        <p className="text-sm font-medium text-plum">
-                          {session.bookingDisabledReason}
-                        </p>
-                      ) : null}
-                      <p className="text-xs text-muted">
-                        {session.priceLabel ?? "Price on request"}
-                        {session.creditCost != null && session.creditCost !== 1
-                          ? ` · ${session.creditCostDisplay ?? formatCredits(session.creditCost)} credits`
-                          : ""}
-                      </p>
-                    </button>
+                      ) : session.bookingDisabledReason ? null : isFull ? (
+                        <div className="space-y-2">
+                          <button
+                            type="button"
+                            disabled
+                            aria-disabled="true"
+                            className="w-full cursor-not-allowed rounded-sm bg-sage px-4 py-3 text-sm font-semibold uppercase tracking-wider text-white opacity-35 grayscale blur-[1px]"
+                          >
+                            Book this session
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => continueWithSession(session.id)}
+                            className={`w-full rounded-sm border px-4 py-3 text-sm font-semibold uppercase tracking-wider transition ${
+                              isSelected
+                                ? "border-plum bg-plum text-white"
+                                : "border-plum/20 bg-white text-plum hover:border-pink hover:text-brand"
+                            }`}
+                          >
+                            {isSelected ? "Continue below" : "Join waiting list"}
+                          </button>
+                          <p className="text-center text-xs leading-snug text-muted">
+                            This class is full. Join the waiting list and we will email
+                            you if a place opens.
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => continueWithSession(session.id)}
+                          className={`w-full rounded-sm px-4 py-3 text-sm font-semibold uppercase tracking-wider text-white transition ${
+                            isSelected
+                              ? "bg-plum hover:bg-plum-hover"
+                              : "bg-sage hover:bg-sage-hover"
+                          }`}
+                        >
+                          {isSelected ? "Continue below" : "Book this session"}
+                        </button>
+                      )}
+                    </article>
                   );
                 })}
             </div>
@@ -869,7 +925,7 @@ export function BookingForm() {
             )}
           </section>
 
-          <section aria-labelledby="booking-step-2">
+          <section ref={detailsStepRef} aria-labelledby="booking-step-2" className="scroll-mt-28">
             <div className="flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sage text-sm font-bold text-white">
                 2
