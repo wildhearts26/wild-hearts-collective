@@ -112,7 +112,7 @@ export default function RootLayout({
       lang="en-GB"
       className={`${satisfy.variable} ${raleway.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col font-body">
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden font-body">
         {structuredData.map((data, index) => (
           <script
             key={index}

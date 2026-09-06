@@ -214,7 +214,7 @@ export function AdminTutorsPanel({
       {isEditing && (
         <form
           onSubmit={handleSubmit}
-          className="rounded-lg border border-plum/10 bg-surface p-6 shadow-sm"
+          className="rounded-lg border border-plum/10 bg-surface p-4 shadow-sm sm:p-6"
         >
           <h2 className="font-display text-2xl text-plum">
             {editingId === "new" ? "Add instructor" : "Edit instructor"}
@@ -303,89 +303,166 @@ export function AdminTutorsPanel({
         {tutors.length === 0 ? (
           <p className="px-6 py-10 text-sm text-muted">No instructors yet.</p>
         ) : (
-          <div className="min-w-0">
-            <table className="w-full table-fixed text-left text-sm">
-              <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
-                <tr>
-                  <th className="w-[22%] px-4 py-3 font-semibold">Name</th>
-                <th className="w-[28%] px-4 py-3 font-semibold">Contact</th>
-                <th className="w-[22%] px-4 py-3 font-semibold">Bio</th>
-                <th className="w-[10%] px-4 py-3 font-semibold">Sessions</th>
-                <th className="w-[18%] px-4 py-3 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            <ul className="divide-y divide-plum/10 sm:hidden">
               {tutors.map((tutor) => (
-                <tr
+                <li
                   key={tutor.id}
-                  className={`border-b border-plum/8 align-top last:border-b-0 ${
-                    tutor.active ? "" : "bg-cream/50 opacity-80"
-                  }`}
+                  className={`space-y-3 p-4 ${tutor.active ? "" : "bg-cream/50 opacity-80"}`}
                 >
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-plum">{tutor.name}</p>
-                    <span
-                      className={`mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
-                        tutor.active
-                          ? "bg-emerald-50 text-emerald-900"
-                          : "bg-plum/10 text-plum"
-                      }`}
-                    >
-                      {tutor.active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-plum">{tutor.name}</p>
+                      <span
+                        className={`mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                          tutor.active
+                            ? "bg-emerald-50 text-emerald-900"
+                            : "bg-plum/10 text-plum"
+                        }`}
+                      >
+                        {tutor.active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <p className="shrink-0 text-xs text-muted">
+                      {tutor._count.sessions} session{tutor._count.sessions === 1 ? "" : "s"}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1 text-sm text-muted">
                     {tutor.email ? (
-                      <a href={`mailto:${tutor.email}`} className="block truncate hover:underline">
+                      <a
+                        href={`mailto:${tutor.email}`}
+                        className="block break-all hover:underline"
+                      >
                         {tutor.email}
                       </a>
                     ) : (
                       <p className="text-xs">No email</p>
                     )}
-                    {tutor.phone && <p className="mt-1 truncate">{tutor.phone}</p>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="line-clamp-2 text-muted">{tutor.bio || "—"}</p>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{tutor._count.sessions}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col items-start gap-1.5">
+                    {tutor.phone ? <p>{tutor.phone}</p> : null}
+                    {tutor.bio ? <p className="text-muted">{tutor.bio}</p> : null}
+                  </div>
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 border-t border-plum/10 pt-3">
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => startEdit(tutor)}
+                      className="text-sm font-semibold text-brand hover:underline disabled:opacity-60"
+                    >
+                      Edit
+                    </button>
+                    {!tutor.active ? (
                       <button
                         type="button"
                         disabled={loading}
-                        onClick={() => startEdit(tutor)}
+                        onClick={() => handleReactivate(tutor)}
+                        className="text-sm font-semibold text-sage hover:underline disabled:opacity-60"
+                      >
+                        Reactivate
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleRemove(tutor)}
                         className="text-sm font-semibold text-brand hover:underline disabled:opacity-60"
                       >
-                        Edit
+                        {tutor._count.sessions > 0 ? "Deactivate" : "Remove"}
                       </button>
-                      {!tutor.active ? (
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() => handleReactivate(tutor)}
-                          className="text-sm font-semibold text-sage hover:underline disabled:opacity-60"
-                        >
-                          Reactivate
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() => handleRemove(tutor)}
-                          className="text-sm font-semibold text-brand hover:underline disabled:opacity-60"
-                        >
-                          {tutor._count.sessions > 0 ? "Deactivate" : "Remove"}
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                    )}
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+            </ul>
+
+            <div className="hidden min-w-0 sm:block">
+              <table className="w-full table-fixed text-left text-sm">
+                <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
+                  <tr>
+                    <th className="w-[22%] px-4 py-3 font-semibold">Name</th>
+                    <th className="w-[28%] px-4 py-3 font-semibold">Contact</th>
+                    <th className="w-[22%] px-4 py-3 font-semibold">Bio</th>
+                    <th className="w-[10%] px-4 py-3 font-semibold">Sessions</th>
+                    <th className="w-[18%] px-4 py-3 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tutors.map((tutor) => (
+                    <tr
+                      key={tutor.id}
+                      className={`border-b border-plum/8 align-top last:border-b-0 ${
+                        tutor.active ? "" : "bg-cream/50 opacity-80"
+                      }`}
+                    >
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-plum">{tutor.name}</p>
+                        <span
+                          className={`mt-1 inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
+                            tutor.active
+                              ? "bg-emerald-50 text-emerald-900"
+                              : "bg-plum/10 text-plum"
+                          }`}
+                        >
+                          {tutor.active ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted">
+                        {tutor.email ? (
+                          <a
+                            href={`mailto:${tutor.email}`}
+                            className="block truncate hover:underline"
+                          >
+                            {tutor.email}
+                          </a>
+                        ) : (
+                          <p className="text-xs">No email</p>
+                        )}
+                        {tutor.phone && <p className="mt-1 truncate">{tutor.phone}</p>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="line-clamp-2 text-muted">{tutor.bio || "—"}</p>
+                      </td>
+                      <td className="px-4 py-3 text-muted">{tutor._count.sessions}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col items-start gap-1.5">
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => startEdit(tutor)}
+                            className="text-sm font-semibold text-brand hover:underline disabled:opacity-60"
+                          >
+                            Edit
+                          </button>
+                          {!tutor.active ? (
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => handleReactivate(tutor)}
+                              className="text-sm font-semibold text-sage hover:underline disabled:opacity-60"
+                            >
+                              Reactivate
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={loading}
+                              onClick={() => handleRemove(tutor)}
+                              className="text-sm font-semibold text-brand hover:underline disabled:opacity-60"
+                            >
+                              {tutor._count.sessions > 0 ? "Deactivate" : "Remove"}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

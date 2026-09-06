@@ -54,91 +54,167 @@ function isUpcomingBooking(booking: AdminBookingRow, now: Date) {
   return isActive && booking.session.startsAt >= now;
 }
 
+function formatPaid(amountPaid: number | null) {
+  return amountPaid != null ? `£${(amountPaid / 100).toFixed(2)}` : "—";
+}
+
 function AdminBookingsTable({ bookings }: { bookings: AdminBookingRow[] }) {
   if (bookings.length === 0) {
     return <p className="px-6 py-10 text-sm text-muted">No bookings in this section.</p>;
   }
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-lg border border-plum/10 bg-surface shadow-sm">
-      <table className="w-full table-fixed text-left text-sm">
-        <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
-          <tr>
-            <th className="w-[9%] px-2 py-3 font-semibold">Booked</th>
-            <th className="w-[11%] px-2 py-3 font-semibold">Class</th>
-            <th className="w-[12%] px-2 py-3 font-semibold">Session</th>
-            <th className="w-[10%] px-2 py-3 font-semibold">Name</th>
-            <th className="w-[14%] px-2 py-3 font-semibold">Email</th>
-            <th className="w-[9%] px-2 py-3 font-semibold">Phone</th>
-            <th className="w-[10%] px-2 py-3 font-semibold">Notes</th>
-            <th className="w-[6%] px-2 py-3 font-semibold">Paid</th>
-            <th className="w-[19%] px-2 py-3 font-semibold">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map((booking) => (
-            <tr
-              key={booking.id}
-              className="border-b border-plum/8 align-top last:border-b-0"
-            >
-              <td className="px-2 py-3 text-muted">
-                {formatUkDateTimeShort(booking.createdAt)}
-              </td>
-              <td className="px-2 py-3">
-                <p
-                  className="truncate font-medium text-plum"
-                  title={booking.session.class.title}
-                >
-                  {booking.session.class.title}
-                </p>
-              </td>
-              <td className="px-2 py-3 text-muted">
-                <p className="leading-snug break-words">
+    <>
+      <ul className="space-y-3 sm:hidden">
+        {bookings.map((booking) => (
+          <li
+            key={booking.id}
+            className="rounded-lg border border-plum/10 bg-surface p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-medium text-plum">{booking.session.class.title}</p>
+                <p className="mt-1 text-sm leading-snug text-muted">
                   {formatSessionDateTime(booking.session.startsAt)}
                 </p>
-              </td>
-              <td className="px-2 py-3">
-                <p className="truncate text-foreground" title={booking.name}>
-                  {booking.name}
-                </p>
-              </td>
-              <td className="px-2 py-3">
-                <a
-                  href={`mailto:${booking.email}`}
-                  className="block truncate text-plum hover:text-pink hover:underline"
-                  title={booking.email}
-                >
-                  {booking.email}
-                </a>
-              </td>
-              <td className="px-2 py-3">
-                <p className="truncate text-muted" title={booking.phone ?? undefined}>
-                  {booking.phone ?? "—"}
-                </p>
-              </td>
-              <td className="px-2 py-3">
-                <p className="line-clamp-2 text-muted" title={booking.notes ?? undefined}>
-                  {booking.notes ?? "—"}
-                </p>
-              </td>
-              <td className="px-2 py-3 text-muted">
-                {booking.amountPaid != null
-                  ? `£${(booking.amountPaid / 100).toFixed(2)}`
-                  : "—"}
-              </td>
-              <td className="px-2 py-3">
-                <AdminBookingActions
-                  bookingId={booking.id}
-                  currentStatus={booking.status}
-                  currentAttendance={booking.attendance}
-                  sessionStartsAt={booking.session.startsAt.toISOString()}
-                />
-              </td>
+              </div>
+              <p className="shrink-0 text-xs text-muted">
+                {formatPaid(booking.amountPaid)}
+              </p>
+            </div>
+
+            <dl className="mt-3 space-y-1.5 text-sm">
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Name
+                </dt>
+                <dd className="min-w-0 text-foreground">{booking.name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Email
+                </dt>
+                <dd className="min-w-0">
+                  <a
+                    href={`mailto:${booking.email}`}
+                    className="break-all text-plum hover:text-pink hover:underline"
+                  >
+                    {booking.email}
+                  </a>
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Phone
+                </dt>
+                <dd className="min-w-0 text-muted">{booking.phone ?? "—"}</dd>
+              </div>
+              {booking.notes ? (
+                <div className="flex gap-2">
+                  <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                    Notes
+                  </dt>
+                  <dd className="min-w-0 text-muted">{booking.notes}</dd>
+                </div>
+              ) : null}
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Booked
+                </dt>
+                <dd className="min-w-0 text-muted">
+                  {formatUkDateTimeShort(booking.createdAt)}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-4 border-t border-plum/10 pt-3">
+              <AdminBookingActions
+                bookingId={booking.id}
+                currentStatus={booking.status}
+                currentAttendance={booking.attendance}
+                sessionStartsAt={booking.session.startsAt.toISOString()}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden min-w-0 overflow-hidden rounded-lg border border-plum/10 bg-surface shadow-sm sm:block">
+        <table className="w-full table-fixed text-left text-sm">
+          <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
+            <tr>
+              <th className="w-[9%] px-2 py-3 font-semibold">Booked</th>
+              <th className="w-[11%] px-2 py-3 font-semibold">Class</th>
+              <th className="w-[12%] px-2 py-3 font-semibold">Session</th>
+              <th className="w-[10%] px-2 py-3 font-semibold">Name</th>
+              <th className="w-[14%] px-2 py-3 font-semibold">Email</th>
+              <th className="w-[9%] px-2 py-3 font-semibold">Phone</th>
+              <th className="w-[10%] px-2 py-3 font-semibold">Notes</th>
+              <th className="w-[6%] px-2 py-3 font-semibold">Paid</th>
+              <th className="w-[19%] px-2 py-3 font-semibold">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {bookings.map((booking) => (
+              <tr
+                key={booking.id}
+                className="border-b border-plum/8 align-top last:border-b-0"
+              >
+                <td className="px-2 py-3 text-muted">
+                  {formatUkDateTimeShort(booking.createdAt)}
+                </td>
+                <td className="px-2 py-3">
+                  <p
+                    className="truncate font-medium text-plum"
+                    title={booking.session.class.title}
+                  >
+                    {booking.session.class.title}
+                  </p>
+                </td>
+                <td className="px-2 py-3 text-muted">
+                  <p className="leading-snug break-words">
+                    {formatSessionDateTime(booking.session.startsAt)}
+                  </p>
+                </td>
+                <td className="px-2 py-3">
+                  <p className="truncate text-foreground" title={booking.name}>
+                    {booking.name}
+                  </p>
+                </td>
+                <td className="px-2 py-3">
+                  <a
+                    href={`mailto:${booking.email}`}
+                    className="block truncate text-plum hover:text-pink hover:underline"
+                    title={booking.email}
+                  >
+                    {booking.email}
+                  </a>
+                </td>
+                <td className="px-2 py-3">
+                  <p className="truncate text-muted" title={booking.phone ?? undefined}>
+                    {booking.phone ?? "—"}
+                  </p>
+                </td>
+                <td className="px-2 py-3">
+                  <p className="line-clamp-2 text-muted" title={booking.notes ?? undefined}>
+                    {booking.notes ?? "—"}
+                  </p>
+                </td>
+                <td className="px-2 py-3 text-muted">{formatPaid(booking.amountPaid)}</td>
+                <td className="px-2 py-3">
+                  <AdminBookingActions
+                    bookingId={booking.id}
+                    currentStatus={booking.status}
+                    currentAttendance={booking.attendance}
+                    sessionStartsAt={booking.session.startsAt.toISOString()}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
@@ -148,62 +224,114 @@ function AdminWaitlistTable({ entries }: { entries: WaitlistRow[] }) {
   }
 
   return (
-    <div className="min-w-0 overflow-hidden rounded-lg border border-plum/10 bg-surface shadow-sm">
-      <table className="w-full table-fixed text-left text-sm">
-        <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
-          <tr>
-            <th className="w-[12%] px-2 py-3 font-semibold">Joined</th>
-            <th className="w-[16%] px-2 py-3 font-semibold">Class</th>
-            <th className="w-[18%] px-2 py-3 font-semibold">Session</th>
-            <th className="w-[14%] px-2 py-3 font-semibold">Name</th>
-            <th className="w-[22%] px-2 py-3 font-semibold">Email</th>
-            <th className="w-[18%] px-2 py-3 font-semibold">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((entry) => (
-            <tr
-              key={entry.id}
-              className="border-b border-plum/8 align-top last:border-b-0"
-            >
-              <td className="px-2 py-3 text-muted">
-                {formatUkDateTimeShort(entry.createdAt)}
-              </td>
-              <td className="px-2 py-3">
-                <p
-                  className="truncate font-medium text-plum"
-                  title={entry.session.class.title}
-                >
-                  {entry.session.class.title}
-                </p>
-              </td>
-              <td className="px-2 py-3 text-muted">
-                <p className="leading-snug break-words">
-                  {formatSessionDateTime(entry.session.startsAt)}
-                </p>
-              </td>
-              <td className="px-2 py-3">
-                <p className="truncate text-foreground" title={entry.name}>
-                  {entry.name}
-                </p>
-              </td>
-              <td className="px-2 py-3">
-                <a
-                  href={`mailto:${entry.email}`}
-                  className="block truncate text-plum hover:text-pink hover:underline"
-                  title={entry.email}
-                >
-                  {entry.email}
-                </a>
-              </td>
-              <td className="px-2 py-3">
-                <AdminWaitlistActions entryId={entry.id} currentStatus={entry.status} />
-              </td>
+    <>
+      <ul className="space-y-3 sm:hidden">
+        {entries.map((entry) => (
+          <li
+            key={entry.id}
+            className="rounded-lg border border-plum/10 bg-surface p-4 shadow-sm"
+          >
+            <div className="min-w-0">
+              <p className="font-medium text-plum">{entry.session.class.title}</p>
+              <p className="mt-1 text-sm leading-snug text-muted">
+                {formatSessionDateTime(entry.session.startsAt)}
+              </p>
+            </div>
+
+            <dl className="mt-3 space-y-1.5 text-sm">
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Name
+                </dt>
+                <dd className="min-w-0 text-foreground">{entry.name}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Email
+                </dt>
+                <dd className="min-w-0">
+                  <a
+                    href={`mailto:${entry.email}`}
+                    className="break-all text-plum hover:text-pink hover:underline"
+                  >
+                    {entry.email}
+                  </a>
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wider text-brand">
+                  Joined
+                </dt>
+                <dd className="min-w-0 text-muted">
+                  {formatUkDateTimeShort(entry.createdAt)}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-4 border-t border-plum/10 pt-3">
+              <AdminWaitlistActions entryId={entry.id} currentStatus={entry.status} />
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden min-w-0 overflow-hidden rounded-lg border border-plum/10 bg-surface shadow-sm sm:block">
+        <table className="w-full table-fixed text-left text-sm">
+          <thead className="border-b border-plum/10 bg-pink-soft/60 text-xs uppercase tracking-wider text-plum">
+            <tr>
+              <th className="w-[12%] px-2 py-3 font-semibold">Joined</th>
+              <th className="w-[16%] px-2 py-3 font-semibold">Class</th>
+              <th className="w-[18%] px-2 py-3 font-semibold">Session</th>
+              <th className="w-[14%] px-2 py-3 font-semibold">Name</th>
+              <th className="w-[22%] px-2 py-3 font-semibold">Email</th>
+              <th className="w-[18%] px-2 py-3 font-semibold">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {entries.map((entry) => (
+              <tr
+                key={entry.id}
+                className="border-b border-plum/8 align-top last:border-b-0"
+              >
+                <td className="px-2 py-3 text-muted">
+                  {formatUkDateTimeShort(entry.createdAt)}
+                </td>
+                <td className="px-2 py-3">
+                  <p
+                    className="truncate font-medium text-plum"
+                    title={entry.session.class.title}
+                  >
+                    {entry.session.class.title}
+                  </p>
+                </td>
+                <td className="px-2 py-3 text-muted">
+                  <p className="leading-snug break-words">
+                    {formatSessionDateTime(entry.session.startsAt)}
+                  </p>
+                </td>
+                <td className="px-2 py-3">
+                  <p className="truncate text-foreground" title={entry.name}>
+                    {entry.name}
+                  </p>
+                </td>
+                <td className="px-2 py-3">
+                  <a
+                    href={`mailto:${entry.email}`}
+                    className="block truncate text-plum hover:text-pink hover:underline"
+                    title={entry.email}
+                  >
+                    {entry.email}
+                  </a>
+                </td>
+                <td className="px-2 py-3">
+                  <AdminWaitlistActions entryId={entry.id} currentStatus={entry.status} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
@@ -253,9 +381,9 @@ export default async function AdminBookingsPage() {
     );
 
   return (
-    <div className="mx-auto min-w-0 max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+    <div className="mx-auto min-w-0 max-w-7xl overflow-x-hidden px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="mb-5 h-px w-12 bg-pink" />
           <h1 className="font-display text-4xl text-plum sm:text-5xl">Bookings</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">

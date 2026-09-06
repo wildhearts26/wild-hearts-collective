@@ -55,7 +55,7 @@ export function AdminWaitlistActions({
         value={status}
         disabled={loading}
         onChange={(event) => handleChange(event.target.value)}
-        className="rounded-sm border border-plum/15 bg-surface px-2 py-1 text-xs font-semibold uppercase tracking-wide text-plum"
+        className="block w-full rounded-sm border border-plum/15 bg-surface px-2 py-1 text-xs font-semibold uppercase tracking-wide text-plum"
       >
         {statuses.map((option) => (
           <option key={option.value} value={option.value}>

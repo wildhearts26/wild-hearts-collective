@@ -18,7 +18,7 @@ export function AdminCollapsibleSection({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="mt-8 rounded-lg border border-plum/10 bg-surface p-6 shadow-sm">
+    <section className="mt-8 rounded-lg border border-plum/10 bg-surface p-4 shadow-sm sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-2xl text-plum">{title}</h2>
         <button

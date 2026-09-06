@@ -83,8 +83,8 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-md flex-col justify-center px-6 py-20">
-      <div className="rounded-lg border border-plum/10 bg-surface p-8 shadow-sm">
+    <div className="mx-auto flex w-full min-w-0 max-w-md flex-col justify-center overflow-x-hidden px-4 py-16 sm:min-h-[60vh] sm:px-6 sm:py-20">
+      <div className="min-w-0 rounded-lg border border-plum/10 bg-surface p-5 shadow-sm sm:p-8">
         <div className="mb-6 h-px w-12 bg-pink" />
         <h1 className="font-display text-4xl text-plum">Admin login</h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">
@@ -104,7 +104,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 w-full rounded-sm border border-plum/15 px-4 py-3 text-sm outline-none ring-pink focus:border-pink focus:ring-1"
+              className="mt-2 w-full rounded-sm border border-plum/15 px-4 py-3 text-base outline-none ring-pink focus:border-pink focus:ring-1 sm:text-sm"
             />
           </div>
 
@@ -121,7 +121,7 @@ export default function AdminLoginPage() {
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-sm border border-plum/15 py-3 pl-4 pr-12 text-sm outline-none ring-pink focus:border-pink focus:ring-1"
+                className="w-full rounded-sm border border-plum/15 py-3 pl-4 pr-12 text-base outline-none ring-pink focus:border-pink focus:ring-1 sm:text-sm"
               />
               <button
                 type="button"
